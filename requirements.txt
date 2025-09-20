@@ -1,0 +1,10 @@
+#Core PDF and image processing
+pdfplumber
+Pillow
+
+#For interacting with AI services
+requests
+openai
+
+#For advanced natural language processing (recommended)
+spacy
