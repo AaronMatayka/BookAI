@@ -42,15 +42,21 @@ except ImportError:
 # Local Context Engine
 from context_bank import ContextBank, DescriptorExtractor, enrich_prompt_with_context
 
-# Ollama Integration
+# Ollama integration: these may fail to import if the module is missing.
 try:
-    from ollama_connector import ollama_extract_descriptors, list_models as list_ollama_models
-except ImportError:
-    # If the module is missing, define fallback stubs
+    from ollama_connector import (
+        ollama_extract_descriptors,
+        list_models as list_ollama_models,
+        ollama_generate_prompt,
+    )
+except Exception:
+    # Provide fallbacks if the connector is unavailable
     def ollama_extract_descriptors(model: str, text: str, url: str = "http://localhost:11434"):
         return []
     def list_ollama_models(url: str = "http://localhost:11434"):
         return []
+    def ollama_generate_prompt(model: str, context: str, text: str, url: str = "http://localhost:11434") -> str:
+        return ""
 
 # GUI
 import tkinter as tk
@@ -79,9 +85,14 @@ class Settings:
     learn_descriptors: bool = True
     reset_context: bool = False
 
-    # Ollama settings for descriptor extraction
+    # Ollama settings for descriptor extraction and prompt generation
     ollama_url: str = os.environ.get("BOOKAI_OLLAMA_URL", "http://localhost:11434")
     ollama_model: str = os.environ.get("BOOKAI_OLLAMA_MODEL", "")
+
+    # Node selection for prompt injection
+    # Specifies the ID of the CLIPTextEncode node into which the prompt should be injected.
+    # If empty, all CLIPTextEncode nodes will be injected (existing behaviour).
+    clip_node_id: str = ""
 
 
 # -------------------- Utilities --------------------
@@ -232,8 +243,21 @@ def openai_summarise(key: str, txt: str, token_cap: int) -> str:
 
 # -------------------- ComfyUI Integration --------------------
 
-def comfy_inject_and_generate(comfy_url: str, workflow_file: Path, prompt_text: str, out_dir: Path, page_seed: int, log_fn) -> Path:
-    """Injects a prompt into a ComfyUI workflow, runs it, and downloads the result."""
+def comfy_inject_and_generate(
+    comfy_url: str,
+    workflow_file: Path,
+    prompt_text: str,
+    out_dir: Path,
+    page_seed: int,
+    log_fn,
+    clip_node_id: Optional[str] = None,
+) -> Path:
+    """Injects a prompt into a ComfyUI workflow, runs it, and downloads the result.
+
+    If ``clip_node_id`` is provided, the prompt will only be injected into the
+    specified CLIPTextEncode node.  Otherwise, it will inject into all
+    CLIPTextEncode nodes as before.
+    """
     if requests is None:
         raise RuntimeError("`requests` is required for the ComfyUI backend. Please run: pip install requests")
 
@@ -246,12 +270,22 @@ def comfy_inject_and_generate(comfy_url: str, workflow_file: Path, prompt_text: 
 
     # 2. Inject prompt into all relevant text nodes
     touched_nodes = 0
-    for node in graph.values():
+    # Determine which node IDs to inject
+    target_ids: Optional[List[str]] = None
+    if clip_node_id:
+        target_ids = [clip_node_id]
+    for nid, node in graph.items():
         class_type = node.get("class_type", "")
         if "CLIPTextEncode" in class_type:
-            if "text" in node["inputs"]:
-                node["inputs"]["text"] = prompt_text
-                touched_nodes += 1
+            # Skip if node does not have a text input
+            if "text" not in node.get("inputs", {}):
+                continue
+            # If a specific node ID is supplied, only inject into that
+            if target_ids is not None:
+                if str(nid) not in target_ids:
+                    continue
+            node["inputs"]["text"] = prompt_text
+            touched_nodes += 1
     if touched_nodes == 0:
         raise RuntimeError("Could not find a 'CLIPTextEncode' node in your workflow to inject the prompt into.")
 
@@ -346,17 +380,23 @@ class App(tk.Tk):
         self.var_key = tk.StringVar(value=self.s.openai_key)
         ttk.Entry(backend_frame, textvariable=self.var_key, show="*").grid(row=2, column=1, sticky="we", padx=5, pady=5)
 
-        # Ollama settings rows
+        # Ollama configuration
         ttk.Label(backend_frame, text="Ollama URL:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.var_ollama_url = tk.StringVar(value=self.s.ollama_url)
         ttk.Entry(backend_frame, textvariable=self.var_ollama_url, width=40).grid(row=3, column=1, sticky="w", padx=5, pady=5)
 
         ttk.Label(backend_frame, text="Ollama Model:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
         self.var_ollama_model = tk.StringVar(value=self.s.ollama_model)
-        # Combobox will be populated by _refresh_models
         self.combo_model = ttk.Combobox(backend_frame, textvariable=self.var_ollama_model, width=30, state="readonly")
         self.combo_model.grid(row=4, column=1, sticky="w", padx=5, pady=5)
         ttk.Button(backend_frame, text="Refresh Models", command=self._refresh_models).grid(row=4, column=2, padx=5, pady=5)
+
+        # CLIP Node Selection for prompt injection
+        ttk.Label(backend_frame, text="Inject into Node:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        self.var_clip_node = tk.StringVar(value=self.s.clip_node_id)
+        self.combo_clip_node = ttk.Combobox(backend_frame, textvariable=self.var_clip_node, width=20, state="readonly")
+        self.combo_clip_node.grid(row=5, column=1, sticky="w", padx=5, pady=5)
+        ttk.Button(backend_frame, text="Refresh Nodes", command=self._refresh_nodes).grid(row=5, column=2, padx=5, pady=5)
 
         # Context and Generation Settings
         settings_frame = ttk.LabelFrame(main_frame, text="Generation Settings", padding="10")
@@ -417,12 +457,28 @@ class App(tk.Tk):
         try:
             self._refresh_models()
         except Exception:
-            # Silently ignore errors during startup
+            pass
+        # Also populate CLIP node list based on current workflow
+        try:
+            self._refresh_nodes()
+        except Exception:
             pass
 
     def _pick_pdf(self): self.var_pdf.set(filedialog.askopenfilename(filetypes=[("PDF", "*.pdf")]) or self.var_pdf.get())
     def _pick_out(self): self.var_out.set(filedialog.askdirectory() or self.var_out.get())
-    def _pick_wf(self): self.var_wf.set(filedialog.askopenfilename(filetypes=[("JSON Workflow", "*.json")]) or self.var_wf.get())
+    def _pick_wf(self):
+        """Prompt the user to select a workflow JSON file and refresh the CLIP node list."""
+        selected = filedialog.askopenfilename(filetypes=[("JSON Workflow", "*.json")])
+        if selected:
+            self.var_wf.set(selected)
+            # Refresh node choices when a new workflow is selected
+            try:
+                self._refresh_nodes()
+            except Exception:
+                pass
+        else:
+            # Nothing selected, retain previous value
+            pass
     def _pick_ctx(self): self.var_ctx.set(filedialog.asksaveasfilename(defaultextension=".md", filetypes=[("Markdown/Text", "*.md *.txt")]) or self.var_ctx.get())
 
     def log_print(self, msg: str) -> None:
@@ -431,13 +487,15 @@ class App(tk.Tk):
         self.update_idletasks()
 
     def _refresh_models(self) -> None:
-        """Fetches available Ollama models from the configured URL and updates the dropdown."""
+        """
+        Fetch available Ollama models from the configured URL and update the model dropdown.
+        If no URL is provided or the request fails, the dropdown is cleared.
+        """
         url = self.var_ollama_url.get().strip()
         if not url:
-            # Do nothing if the URL field is empty
-            self.log_print("  > No Ollama URL provided; cannot fetch models.")
+            self.log_print("  > No Ollama URL specified; cannot fetch models.")
+            self.combo_model['values'] = []
             return
-        # Indicate to the user that we're fetching models
         self.log_print(f"  > Connecting to Ollama at {url} to fetch model list…")
         try:
             models = list_ollama_models(url)
@@ -447,13 +505,52 @@ class App(tk.Tk):
         if models:
             self.log_print(f"  > Available models: {', '.join(models)}")
             self.combo_model['values'] = models
-            # If the currently selected model is not available, default to the first model
             current = self.var_ollama_model.get().strip()
             if not current or current not in models:
                 self.var_ollama_model.set(models[0])
         else:
             self.log_print("  > No models found on the Ollama server.")
             self.combo_model['values'] = []
+
+    def _refresh_nodes(self) -> None:
+        """
+        Parse the selected workflow file and populate the injection node dropdown
+        with the IDs of all CLIPTextEncode nodes. If no workflow is selected
+        or no nodes are found, the dropdown is cleared.
+        """
+        wf_path = self.var_wf.get().strip()
+        if not wf_path or not os.path.exists(wf_path):
+            self.log_print("  > Please select a valid workflow JSON before refreshing nodes.")
+            self.combo_clip_node['values'] = []
+            return
+        try:
+            with open(wf_path, 'r', encoding='utf-8') as f:
+                wf_data = json.load(f)
+            graph = wf_data.get("prompt") if isinstance(wf_data.get("prompt"), dict) else wf_data
+            node_ids = []
+            for nid, node in graph.items():
+                if not isinstance(node, dict):
+                    continue
+                class_type = node.get("class_type", "") or ""
+                inputs = node.get("inputs", {}) or {}
+                if "CLIPTextEncode" in class_type and "text" in inputs:
+                    node_ids.append(str(nid))
+            if node_ids:
+                self.log_print(f"  > Found CLIP nodes: {', '.join(node_ids)}")
+                self.combo_clip_node['values'] = node_ids
+                current = self.var_clip_node.get().strip()
+                if current and current in node_ids:
+                    # keep current
+                    pass
+                else:
+                    # default to first found node
+                    self.var_clip_node.set(node_ids[0])
+            else:
+                self.log_print("  > No CLIPTextEncode nodes with text input found in workflow.")
+                self.combo_clip_node['values'] = []
+        except Exception as e:
+            self.log_print(f"  > (!) Failed to parse workflow for nodes: {e}")
+            self.combo_clip_node['values'] = []
 
     def _generate(self):
         s = Settings(
@@ -472,6 +569,7 @@ class App(tk.Tk):
             reset_context=self.var_reset.get(),
             ollama_url=self.var_ollama_url.get().strip(),
             ollama_model=self.var_ollama_model.get().strip(),
+            clip_node_id=self.var_clip_node.get().strip(),
         )
         save_config(s)
         self.generate_button.config(state="disabled")
@@ -525,69 +623,94 @@ class App(tk.Tk):
                 # Learn descriptors from this page's text
                 if s.learn_descriptors:
                     try:
-                        descriptors = []
-                        used_ollama = False
-                        # Use Ollama if a model is specified
+                        desc_pairs: List[tuple] = []
+                        used_ollama_desc = False
+                        # Use Ollama for descriptor extraction if a model is specified
                         if s.ollama_model:
                             self.log_print(f"  > Extracting descriptors via Ollama (URL: {s.ollama_url}, model: {s.ollama_model})")
                             try:
                                 pairs = ollama_extract_descriptors(s.ollama_model, page_text, s.ollama_url)
                                 if pairs:
-                                    used_ollama = True
+                                    used_ollama_desc = True
                                     self.log_print(f"  > Ollama returned {len(pairs)} descriptor(s)")
                                     for name, desc in pairs:
-                                        # Log each extracted descriptor
                                         self.log_print(f"    - {name}: {desc}")
-                                        descriptors.append((name, desc))
+                                        desc_pairs.append((name, desc, []))
                                 else:
                                     self.log_print("  > Ollama returned no descriptors; falling back to regex extractor.")
                             except Exception as e:
-                                self.log_print(f"  > (!) Ollama extraction failed: {e}; falling back to regex extractor.")
-                        # Fallback to regex extractor if no Ollama descriptors were found or no model specified
-                        if not descriptors:
+                                self.log_print(f"  > (!) Ollama descriptor extraction failed: {e}; falling back to regex extractor.")
+                        # Fallback to regex extractor if nothing from Ollama or no model
+                        if not desc_pairs:
                             regex_descs = extractor.suggest(page_text)
                             if regex_descs:
-                                self.log_print(f"  > Regex extractor found {len(regex_descs)} potential descriptor(s)")
+                                self.log_print(f"  > Regex extractor found {len(regex_descs)} descriptor(s)")
                                 for d in regex_descs:
                                     self.log_print(f"    - {d.name}: {d.description}")
-                                    descriptors.append((d.name, d.description, d.aliases))
+                                    desc_pairs.append((d.name, d.description, d.aliases))
                             else:
                                 self.log_print("  > No new descriptors found on this page.")
                         # Upsert descriptors into the context bank
-                        if descriptors:
-                            for item in descriptors:
-                                # item may be tuple of (name, description) or (name, description, aliases)
-                                if len(item) == 3:
-                                    name, desc, aliases = item
-                                else:
-                                    name, desc = item  # type: ignore
-                                    aliases = []
+                        if desc_pairs:
+                            for name, desc, aliases in desc_pairs:
                                 bank.upsert(name, desc, aliases)
                             bank.save()
                             export_context_snapshot(bank, snapshot_path)
                     except Exception as e:
                         self.log_print(f"  > (!) Descriptor learning failed: {e}")
 
+                # Build context snippet for summarisation
+                context_snippet = bank.relevant_snippet(page_text)
+
                 # Create the base prompt for the image
-                if s.summarise and s.openai_key:
-                    self.log_print("  > Summarizing page with OpenAI...")
-                    base_prompt = openai_summarise(s.openai_key, page_text[:4000], s.token_cap)
-                else:
-                    base_prompt = ""
+                base_prompt = ""
+                used_ollama_prompt = False
+                if s.summarise:
+                    if s.openai_key:
+                        self.log_print("  > Summarizing page with OpenAI…")
+                        base_prompt = openai_summarise(s.openai_key, page_text[:4000], s.token_cap)
+                    elif s.ollama_model:
+                        self.log_print(f"  > Generating prompt with Llama via Ollama (model: {s.ollama_model})…")
+                        try:
+                            base_prompt = ollama_generate_prompt(s.ollama_model, context_snippet, page_text, s.ollama_url)
+                            used_ollama_prompt = True if base_prompt.strip() else False
+                        except Exception as e:
+                            self.log_print(f"  > (!) Llama prompt generation failed: {e}")
+                            base_prompt = ""
 
                 if not base_prompt.strip():
                     # Fallback if summarization fails or is disabled
                     base_prompt = " ".join(re.sub(r"\s+", " ", page_text).split()[:120])
                     self.log_print("  > Using first part of page text as prompt.")
 
-                # Enrich prompt with context
-                final_prompt = enrich_prompt_with_context(bank, base_prompt, page_text=page_text)
+                # Determine final prompt: if Llama summarisation was used and succeeded, skip enrichment
+                if used_ollama_prompt and base_prompt.strip():
+                    final_prompt = base_prompt.strip()
+                else:
+                    final_prompt = enrich_prompt_with_context(bank, base_prompt, page_text=page_text)
+
                 self.log_print(f"  > Final Prompt: {final_prompt[:200]}{'...' if len(final_prompt)>200 else ''}")
+
+                # Write the full final prompt to a .txt file for this page (useful for debugging)
+                try:
+                    prompt_path = s.output_dir / f"prompt_{i:04d}.txt"
+                    prompt_path.write_text(final_prompt, encoding="utf-8")
+                except Exception as e:
+                    # Do not halt execution if writing fails; just log the issue
+                    self.log_print(f"  > (!) Could not write prompt file for page {i}: {e}")
 
                 # Generate image
                 try:
                     page_seed = base_seed + i
-                    raw_img = comfy_inject_and_generate(s.comfy_url, s.workflow_file, final_prompt, s.output_dir, page_seed, self.log_print)
+                    raw_img = comfy_inject_and_generate(
+                        s.comfy_url,
+                        s.workflow_file,
+                        final_prompt,
+                        s.output_dir,
+                        page_seed,
+                        self.log_print,
+                        clip_node_id=s.clip_node_id or None,
+                    )
 
                     if s.add_text_under_image:
                         self.log_print(f"  > Adding caption to {raw_img.name}...")
@@ -633,6 +756,7 @@ def save_config(s: Settings) -> None:
         "reset_context": s.reset_context,
         "ollama_url": s.ollama_url,
         "ollama_model": s.ollama_model,
+        "clip_node_id": s.clip_node_id,
     }
     CONFIG_PATH.write_text(json.dumps(data, indent=2))
 
@@ -658,6 +782,7 @@ def load_config() -> Settings:
             s.reset_context = bool(d.get("reset_context", s.reset_context))
             s.ollama_url = d.get("ollama_url", s.ollama_url)
             s.ollama_model = d.get("ollama_model", s.ollama_model)
+            s.clip_node_id = d.get("clip_node_id", s.clip_node_id)
         except (json.JSONDecodeError, KeyError):
             pass # Use defaults if config is malformed
     return s

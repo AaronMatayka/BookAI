@@ -55,31 +55,107 @@ class ContextBank:
     def upsert(self, name: str, description: str, aliases: Optional[List[str]] = None) -> None:
         """
         Adds or updates an entity in the context bank.
-        It intelligently merges descriptions to build a richer profile over time.
+
+        This method attempts to intelligently merge names that refer to the same character
+        by looking for similar existing names or matching aliases.  It also deduplicates
+        descriptions and prunes generic placeholder descriptions once more specific
+        information is available.
         """
         name = (name or "").strip()
         if not name:
             return
 
-        entity = self.data.setdefault("entities", {}).setdefault(name, {"aliases": [], "description": ""})
+        # Normalize provided aliases
+        aliases = [a.strip() for a in aliases or [] if a and a.strip() and a.strip().lower() != name.lower()]
 
-        # Merge descriptions, avoiding duplicates
+        # Find an existing entity that is similar to this name or its aliases
+        def find_similar(target: str, alias_list: List[str]) -> Optional[str]:
+            t_lower = target.lower()
+            # Build a set of candidate strings to match against (name + aliases)
+            candidates = {t_lower}
+            candidates.update(a.lower() for a in alias_list)
+            for existing, meta in self.data.get("entities", {}).items():
+                existing_lower = existing.lower()
+                # Exact match
+                if existing_lower in candidates:
+                    return existing
+                # Match by first word (e.g., "Clary" matches "Clary Fray")
+                if existing_lower.split()[0] == t_lower.split()[0]:
+                    return existing
+                # Match if one name contains the other (substring)
+                if existing_lower in t_lower or t_lower in existing_lower:
+                    return existing
+                # Match against existing aliases
+                for al in meta.get("aliases", []):
+                    al_lower = al.lower()
+                    if al_lower in candidates or al_lower == t_lower:
+                        return existing
+                    # substring match for aliases
+                    if al_lower in t_lower or t_lower in al_lower:
+                        return existing
+            # Fallback: if the new name contains a generic noun such as 'girl' or 'boy',
+            # attempt to unify only with existing names that contain the *same* generic noun.
+            # This prevents merging disparate characters (e.g., a girl with a boy).
+            generic_labels = {"girl", "boy", "woman", "man"}
+            t_words = set(re.split(r"\W+", t_lower))
+            target_generics = generic_labels & t_words
+            if target_generics:
+                for existing_name, meta in self.data.get("entities", {}).items():
+                    e_words = set(re.split(r"\W+", existing_name.lower()))
+                    existing_generics = generic_labels & e_words
+                    if existing_generics and existing_generics == target_generics:
+                        return existing_name
+            return None
+
+        # Determine the canonical name key for this entity
+        canonical = find_similar(name, aliases)
+        if canonical:
+            name_key = canonical
+        else:
+            name_key = name
+
+        # If we merged into an existing entity, add the original name as an alias
+        entity = self.data.setdefault("entities", {}).setdefault(name_key, {"aliases": [], "description": ""})
+
+        # Collect current aliases as a set for deduplication
+        current_aliases: set[str] = set(meta.strip() for meta in entity.get("aliases", []))
+        # If the new name is different from the canonical, record it as an alias
+        if name_key != name:
+            current_aliases.add(name)
+        # Merge provided aliases
+        current_aliases.update(a for a in aliases if a and a.lower() != name_key.lower())
+        # Do not include the canonical name as its own alias
+        current_aliases.discard(name_key)
+
+        # Merge descriptions, avoiding duplicates and pruning generic placeholders
         new_desc = (description or "").strip()
         if new_desc:
-            current_descs = set(d.strip() for d in str(entity.get("description", "")).split(';') if d.strip())
-            current_descs.add(new_desc)
-            entity["description"] = "; ".join(sorted(list(current_descs)))
+            # Build set of existing descriptions (case‑insensitive) for deduplication
+            existing_descs = set(d.strip() for d in str(entity.get("description", "")).split(';') if d.strip())
+            existing_descs.add(new_desc)
+            # Remove generic descriptors if at least one specific description is present
+            # Generic descriptors are those that state no specific details are given
+            generic_keywords = [
+                "no specific description", "no specific physical description",
+                "no specific visual descriptors", "no physical description",
+                "not described"
+            ]
+            has_specific = any(
+                not any(gk in d.lower() for gk in generic_keywords) for d in existing_descs
+            )
+            if has_specific:
+                existing_descs = {
+                    d for d in existing_descs
+                    if not any(gk in d.lower() for gk in generic_keywords)
+                }
+            entity["description"] = "; ".join(sorted(list(existing_descs)))
 
-        # Add new aliases, avoiding duplicates
-        if aliases:
-            current_aliases = set(map(str, entity.get("aliases", [])))
-            for a in aliases:
-                a = (a or "").strip()
-                if a and a.lower() != name.lower():
-                    current_aliases.add(a)
+        # Save merged aliases
+        if current_aliases:
             entity["aliases"] = sorted(list(current_aliases))
 
-        self._compiled_regex = None # Invalidate regex cache
+        # Invalidate regex cache
+        self._compiled_regex = None
 
     def _get_regex(self) -> re.Pattern:
         """Compiles and caches a regex to find all known entity names and aliases in text."""
