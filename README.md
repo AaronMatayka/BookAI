@@ -11,7 +11,7 @@ Setup
     Dependencies: Install the required Python libraries. It's highly recommended to use a virtual environment.
     To create venv:
     python3 -m venv venv 
-    source .venv/bin/activate or activate.fish
+    source venv/bin/activate or activate.fish
     
     pip install -r requirements.txt
 
