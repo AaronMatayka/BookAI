@@ -9,7 +9,10 @@ For example, a simple prompt from page 100 of the book "City of Bones", like "Cl
 Setup
 
     Dependencies: Install the required Python libraries. It's highly recommended to use a virtual environment.
-
+    To create venv:
+    python3 -m venv venv 
+    source .venv/bin/activate or activate.fish
+    
     pip install -r requirements.txt
 
     NLP Model (Recommended): For the best descriptor extraction results, the program uses the spaCy library. You'll need to download its small English model. (WIP, currently working on using an LLM through Ollama for context-aware information generation, as I was struggling with using local options like regex and spaCy for the project.) 
