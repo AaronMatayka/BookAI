@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import os
+
 import json
+import os
 import re
-import time
 import threading
+import time
 import traceback
-import random
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List
@@ -53,8 +53,12 @@ except Exception:
     # Provide fallbacks if the connector is unavailable
     def ollama_extract_descriptors(model: str, text: str, url: str = "http://localhost:11434"):
         return []
+
+
     def list_ollama_models(url: str = "http://localhost:11434"):
         return []
+
+
     def ollama_generate_prompt(model: str, context: str, text: str, url: str = "http://localhost:11434") -> str:
         return ""
 
@@ -67,6 +71,7 @@ CONFIG_DIR = Path.home() / ".config" / "bookai"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 CONFIG_PATH = CONFIG_DIR / "config.json"
 BANK_PATH = CONFIG_DIR / "context_bank.json"
+
 
 @dataclass
 class Settings:
@@ -101,6 +106,7 @@ def ensure_dir(p: Path) -> None:
     """Ensures a directory exists."""
     p.mkdir(parents=True, exist_ok=True)
 
+
 def extract_pages(pdf_path: Path) -> List[str]:
     """Extracts text from all pages of a PDF."""
     if pdfplumber is None:
@@ -111,6 +117,7 @@ def extract_pages(pdf_path: Path) -> List[str]:
         for pg in pdf.pages:
             texts.append((pg.extract_text(x_tolerance=1, y_tolerance=3) or "").strip())
     return texts
+
 
 def parse_pages_spec(spec: str, total: int) -> List[int]:
     """Parses a page range string (e.g., '1-5, 8, 10-12') into a list of page numbers."""
@@ -136,13 +143,14 @@ def parse_pages_spec(spec: str, total: int) -> List[int]:
                 pass
     return sorted(list(set(out)))
 
+
 def export_context_snapshot(bank: ContextBank, dest: Path) -> None:
     """Writes a human-readable snapshot of the context bank to a text file."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# BookAI Context Snapshot",
         f"# Last updated: {time.strftime('%Y-%m-%d %H:%M:%S')}",
-        "#" + "-"*50
+        "#" + "-" * 50
     ]
     entities = bank.data.get("entities", {})
     if not entities:
@@ -170,6 +178,7 @@ def wrap_text(text: str, width: int, font: ImageFont.FreeTypeFont) -> List[str]:
             line += (words.pop(0) + ' ')
         lines.append(line.strip())
     return lines
+
 
 def compose_with_caption(img_path: Path, caption: str, out_path: Path) -> None:
     """Adds a text caption below an image."""
@@ -207,7 +216,7 @@ def compose_with_caption(img_path: Path, caption: str, out_path: Path) -> None:
     except Exception as e:
         print(f"Failed to compose caption: {e}. Copying original image instead.")
         if img_path.resolve() != out_path.resolve():
-             out_path.write_bytes(img_path.read_bytes())
+            out_path.write_bytes(img_path.read_bytes())
 
 
 # -------------------- OpenAI Summarizer (Optional) --------------------
@@ -244,13 +253,13 @@ def openai_summarise(key: str, txt: str, token_cap: int) -> str:
 # -------------------- ComfyUI Integration --------------------
 
 def comfy_inject_and_generate(
-    comfy_url: str,
-    workflow_file: Path,
-    prompt_text: str,
-    out_dir: Path,
-    page_seed: int,
-    log_fn,
-    clip_node_id: Optional[str] = None,
+        comfy_url: str,
+        workflow_file: Path,
+        prompt_text: str,
+        out_dir: Path,
+        page_seed: int,
+        log_fn,
+        clip_node_id: Optional[str] = None,
 ) -> Path:
     """Injects a prompt into a ComfyUI workflow, runs it, and downloads the result.
 
@@ -369,34 +378,39 @@ class App(tk.Tk):
 
         ttk.Label(backend_frame, text="ComfyUI URL:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.var_comfy = tk.StringVar(value=self.s.comfy_url)
-        ttk.Entry(backend_frame, textvariable=self.var_comfy, width=40).grid(row=0, column=1, sticky="w", padx=5, pady=5)
+        ttk.Entry(backend_frame, textvariable=self.var_comfy, width=40).grid(row=0, column=1, sticky="w", padx=5,
+                                                                             pady=5)
 
         ttk.Label(backend_frame, text="Workflow JSON:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.var_wf = tk.StringVar(value=str(self.s.workflow_file or ""))
         ttk.Entry(backend_frame, textvariable=self.var_wf).grid(row=1, column=1, sticky="we", padx=5, pady=5)
         ttk.Button(backend_frame, text="Browse…", command=self._pick_wf).grid(row=1, column=2, padx=5, pady=5)
 
-        ttk.Label(backend_frame, text="OpenAI API Key (for summarization):").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        ttk.Label(backend_frame, text="OpenAI API Key (for summarization):").grid(row=2, column=0, sticky="e", padx=5,
+                                                                                  pady=5)
         self.var_key = tk.StringVar(value=self.s.openai_key)
         ttk.Entry(backend_frame, textvariable=self.var_key, show="*").grid(row=2, column=1, sticky="we", padx=5, pady=5)
 
         # Ollama configuration
         ttk.Label(backend_frame, text="Ollama URL:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.var_ollama_url = tk.StringVar(value=self.s.ollama_url)
-        ttk.Entry(backend_frame, textvariable=self.var_ollama_url, width=40).grid(row=3, column=1, sticky="w", padx=5, pady=5)
+        ttk.Entry(backend_frame, textvariable=self.var_ollama_url, width=40).grid(row=3, column=1, sticky="w", padx=5,
+                                                                                  pady=5)
 
         ttk.Label(backend_frame, text="Ollama Model:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
         self.var_ollama_model = tk.StringVar(value=self.s.ollama_model)
         self.combo_model = ttk.Combobox(backend_frame, textvariable=self.var_ollama_model, width=30, state="readonly")
         self.combo_model.grid(row=4, column=1, sticky="w", padx=5, pady=5)
-        ttk.Button(backend_frame, text="Refresh Models", command=self._refresh_models).grid(row=4, column=2, padx=5, pady=5)
+        ttk.Button(backend_frame, text="Refresh Models", command=self._refresh_models).grid(row=4, column=2, padx=5,
+                                                                                            pady=5)
 
         # CLIP Node Selection for prompt injection
         ttk.Label(backend_frame, text="Inject into Node:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
         self.var_clip_node = tk.StringVar(value=self.s.clip_node_id)
         self.combo_clip_node = ttk.Combobox(backend_frame, textvariable=self.var_clip_node, width=20, state="readonly")
         self.combo_clip_node.grid(row=5, column=1, sticky="w", padx=5, pady=5)
-        ttk.Button(backend_frame, text="Refresh Nodes", command=self._refresh_nodes).grid(row=5, column=2, padx=5, pady=5)
+        ttk.Button(backend_frame, text="Refresh Nodes", command=self._refresh_nodes).grid(row=5, column=2, padx=5,
+                                                                                          pady=5)
 
         # Context and Generation Settings
         settings_frame = ttk.LabelFrame(main_frame, text="Generation Settings", padding="10")
@@ -405,7 +419,8 @@ class App(tk.Tk):
 
         ttk.Label(settings_frame, text="Pages (e.g., 1-5, 8):").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.var_pages = tk.StringVar(value=self.s.pages_range)
-        ttk.Entry(settings_frame, textvariable=self.var_pages, width=30).grid(row=0, column=1, sticky="w", padx=5, pady=5)
+        ttk.Entry(settings_frame, textvariable=self.var_pages, width=30).grid(row=0, column=1, sticky="w", padx=5,
+                                                                              pady=5)
 
         ttk.Label(settings_frame, text="Context Snapshot File:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.var_ctx = tk.StringVar(value=str(self.s.context_file or ""))
@@ -417,19 +432,22 @@ class App(tk.Tk):
         check_frame.grid(row=2, column=0, columnspan=3, sticky="w", pady=5)
 
         self.var_learn = tk.BooleanVar(value=self.s.learn_descriptors)
-        ttk.Checkbutton(check_frame, text="Auto-learn character details", variable=self.var_learn).pack(side="left", padx=5)
+        ttk.Checkbutton(check_frame, text="Auto-learn character details", variable=self.var_learn).pack(side="left",
+                                                                                                        padx=5)
 
         self.var_reset = tk.BooleanVar(value=self.s.reset_context)
         ttk.Checkbutton(check_frame, text="Reset context before run", variable=self.var_reset).pack(side="left", padx=5)
 
         self.var_sum = tk.BooleanVar(value=self.s.summarise)
-        ttk.Checkbutton(check_frame, text="Summarise pages (needs OpenAI key)", variable=self.var_sum).pack(side="left", padx=5)
+        ttk.Checkbutton(check_frame, text="Summarise pages (needs OpenAI key)", variable=self.var_sum).pack(side="left",
+                                                                                                            padx=5)
 
         self.var_skip = tk.BooleanVar(value=self.s.skip_existing)
         ttk.Checkbutton(check_frame, text="Skip existing images", variable=self.var_skip).pack(side="left", padx=5)
 
         self.var_under = tk.BooleanVar(value=self.s.add_text_under_image)
-        ttk.Checkbutton(check_frame, text="Add page text under image", variable=self.var_under).pack(side="left", padx=5)
+        ttk.Checkbutton(check_frame, text="Add page text under image", variable=self.var_under).pack(side="left",
+                                                                                                     padx=5)
 
         # Log and Generate Button
         log_frame = ttk.LabelFrame(main_frame, text="Log", padding="10")
@@ -444,7 +462,8 @@ class App(tk.Tk):
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.log['yscrollcommand'] = scrollbar.set
 
-        self.generate_button = ttk.Button(main_frame, text="Generate Images", command=self._generate, style="Accent.TButton")
+        self.generate_button = ttk.Button(main_frame, text="Generate Images", command=self._generate,
+                                          style="Accent.TButton")
         self.generate_button.grid(row=4, column=2, sticky="e", pady=10)
 
         # Configure styles and weights
@@ -464,8 +483,12 @@ class App(tk.Tk):
         except Exception:
             pass
 
-    def _pick_pdf(self): self.var_pdf.set(filedialog.askopenfilename(filetypes=[("PDF", "*.pdf")]) or self.var_pdf.get())
-    def _pick_out(self): self.var_out.set(filedialog.askdirectory() or self.var_out.get())
+    def _pick_pdf(self):
+        self.var_pdf.set(filedialog.askopenfilename(filetypes=[("PDF", "*.pdf")]) or self.var_pdf.get())
+
+    def _pick_out(self):
+        self.var_out.set(filedialog.askdirectory() or self.var_out.get())
+
     def _pick_wf(self):
         """Prompt the user to select a workflow JSON file and refresh the CLIP node list."""
         selected = filedialog.askopenfilename(filetypes=[("JSON Workflow", "*.json")])
@@ -479,7 +502,10 @@ class App(tk.Tk):
         else:
             # Nothing selected, retain previous value
             pass
-    def _pick_ctx(self): self.var_ctx.set(filedialog.asksaveasfilename(defaultextension=".md", filetypes=[("Markdown/Text", "*.md *.txt")]) or self.var_ctx.get())
+
+    def _pick_ctx(self):
+        self.var_ctx.set(filedialog.asksaveasfilename(defaultextension=".md", filetypes=[
+            ("Markdown/Text", "*.md *.txt")]) or self.var_ctx.get())
 
     def log_print(self, msg: str) -> None:
         self.log.insert("end", msg + "\n")
@@ -560,7 +586,7 @@ class App(tk.Tk):
             summarise=self.var_sum.get(),
             pages_range=self.var_pages.get(),
             skip_existing=self.var_skip.get(),
-            token_cap=75, # Hardcoded for now, can be UI element
+            token_cap=75,  # Hardcoded for now, can be UI element
             add_text_under_image=self.var_under.get(),
             comfy_url=self.var_comfy.get().strip(),
             workflow_file=Path(self.var_wf.get()) if self.var_wf.get().strip() else None,
@@ -604,7 +630,8 @@ class App(tk.Tk):
             pages = extract_pages(s.input_pdf)
             total = len(pages)
             page_numbers = parse_pages_spec(s.pages_range, total)
-            self.log_print(f"✓ Loaded {total} pages from PDF. Processing {len(page_numbers)} pages: {s.pages_range or 'All'}")
+            self.log_print(
+                f"✓ Loaded {total} pages from PDF. Processing {len(page_numbers)} pages: {s.pages_range or 'All'}")
 
             base_seed = int(time.time())
 
@@ -627,7 +654,8 @@ class App(tk.Tk):
                         used_ollama_desc = False
                         # Use Ollama for descriptor extraction if a model is specified
                         if s.ollama_model:
-                            self.log_print(f"  > Extracting descriptors via Ollama (URL: {s.ollama_url}, model: {s.ollama_model})")
+                            self.log_print(
+                                f"  > Extracting descriptors via Ollama (URL: {s.ollama_url}, model: {s.ollama_model})")
                             try:
                                 pairs = ollama_extract_descriptors(s.ollama_model, page_text, s.ollama_url)
                                 if pairs:
@@ -637,9 +665,11 @@ class App(tk.Tk):
                                         self.log_print(f"    - {name}: {desc}")
                                         desc_pairs.append((name, desc, []))
                                 else:
-                                    self.log_print("  > Ollama returned no descriptors; falling back to regex extractor.")
+                                    self.log_print(
+                                        "  > Ollama returned no descriptors; falling back to regex extractor.")
                             except Exception as e:
-                                self.log_print(f"  > (!) Ollama descriptor extraction failed: {e}; falling back to regex extractor.")
+                                self.log_print(
+                                    f"  > (!) Ollama descriptor extraction failed: {e}; falling back to regex extractor.")
                         # Fallback to regex extractor if nothing from Ollama or no model
                         if not desc_pairs:
                             regex_descs = extractor.suggest(page_text)
@@ -672,7 +702,8 @@ class App(tk.Tk):
                     elif s.ollama_model:
                         self.log_print(f"  > Generating prompt with Llama via Ollama (model: {s.ollama_model})…")
                         try:
-                            base_prompt = ollama_generate_prompt(s.ollama_model, context_snippet, page_text, s.ollama_url)
+                            base_prompt = ollama_generate_prompt(s.ollama_model, context_snippet, page_text,
+                                                                 s.ollama_url)
                             used_ollama_prompt = True if base_prompt.strip() else False
                         except Exception as e:
                             self.log_print(f"  > (!) Llama prompt generation failed: {e}")
@@ -689,7 +720,7 @@ class App(tk.Tk):
                 else:
                     final_prompt = enrich_prompt_with_context(bank, base_prompt, page_text=page_text)
 
-                self.log_print(f"  > Final Prompt: {final_prompt[:200]}{'...' if len(final_prompt)>200 else ''}")
+                self.log_print(f"  > Final Prompt: {final_prompt[:200]}{'...' if len(final_prompt) > 200 else ''}")
 
                 # Write the full final prompt to a .txt file for this page (useful for debugging)
                 try:
@@ -760,6 +791,7 @@ def save_config(s: Settings) -> None:
     }
     CONFIG_PATH.write_text(json.dumps(data, indent=2))
 
+
 def load_config() -> Settings:
     s = Settings()
     if CONFIG_PATH.exists():
@@ -784,10 +816,10 @@ def load_config() -> Settings:
             s.ollama_model = d.get("ollama_model", s.ollama_model)
             s.clip_node_id = d.get("clip_node_id", s.clip_node_id)
         except (json.JSONDecodeError, KeyError):
-            pass # Use defaults if config is malformed
+            pass  # Use defaults if config is malformed
     return s
+
 
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-

@@ -13,6 +13,7 @@ except ImportError:
     spacy = None
     Doc = Span = Token = None
 
+
 @dataclass
 class Descriptor:
     """A simple data structure to hold an extracted piece of information."""
@@ -20,8 +21,10 @@ class Descriptor:
     description: str
     aliases: List[str]
 
+
 class ContextBank:
     """Manages loading, saving, and querying a persistent JSON file of learned context."""
+
     def __init__(self, path: Path):
         self.path = Path(path)
         self.data: Dict[str, Dict] = {"entities": {}}
@@ -269,7 +272,7 @@ class DescriptorExtractor:
             # --- Primary Description (e.g., "Clary is...") ---
             description = self._extract_spacy_description_for_entity(ent)
             if description and self._is_visual(description):
-                 out.append(Descriptor(ent.text, description, self._default_aliases(ent.text)))
+                out.append(Descriptor(ent.text, description, self._default_aliases(ent.text)))
 
             # --- Possessive Descriptions (e.g., "The boy's eyes were green") ---
             # A Span's root token is the word that connects it to the rest of the sentence.
@@ -319,7 +322,6 @@ class DescriptorExtractor:
 
         return ""
 
-
     def _suggest_regex(self, text: str) -> List[Descriptor]:
         """A fallback method to extract descriptors using regular expressions."""
         out: List[Descriptor] = []
@@ -336,7 +338,8 @@ class DescriptorExtractor:
             # NEW: “His/Her … hair …” (allows adjectives before hair)
             re.compile(r"(His|Her)[^\.]*?\bhair\s+(?:was|is|were|looked|appeared|seemed)?\s*([^\,\.]+)", re.IGNORECASE),
             # NEW: “His/Her glasses …”
-            re.compile(r"(His|Her)\s+glasses\s+(?:were|are|looked|appeared|seemed|perched)?\s*([^\,\.]+)", re.IGNORECASE),
+            re.compile(r"(His|Her)\s+glasses\s+(?:were|are|looked|appeared|seemed|perched)?\s*([^\,\.]+)",
+                       re.IGNORECASE),
         ]
 
         for line in text.split('\n'):
@@ -368,7 +371,6 @@ class DescriptorExtractor:
                         last_person = name.strip()
         return out
 
-
     @staticmethod
     def _default_aliases(name: str) -> List[str]:
         """Generates simple aliases (like the first name) from a full name."""
@@ -397,9 +399,9 @@ class DescriptorExtractor:
                 existing.aliases = sorted(list(existing_aliases))
         return list(merged.values())
 
+
 def enrich_prompt_with_context(bank: ContextBank, base_prompt: str, page_text: str) -> str:
     """Adds relevant context to a base prompt."""
     snippet = bank.relevant_snippet(page_text or "")
     # Place context at the beginning for better prompt influence
     return f"In a scene where {snippet}: {base_prompt}" if snippet else base_prompt
-

@@ -15,10 +15,10 @@ from typing import List, Tuple, Dict, Any
 
 
 def ollama_extract_descriptors(
-    model: str,
-    text: str,
-    url: str = "http://localhost:11434",
-    max_len: int = 200,
+        model: str,
+        text: str,
+        url: str = "http://localhost:11434",
+        max_len: int = 200,
 ) -> List[Tuple[str, str]]:
     """
     Ask an Ollama model to extract named characters and their visual
@@ -128,10 +128,10 @@ def list_models(url: str = "http://localhost:11434") -> List[str]:
 
 
 def ollama_generate_prompt(
-    model: str,
-    context: str,
-    text: str,
-    url: str = "http://localhost:11434",
+        model: str,
+        context: str,
+        text: str,
+        url: str = "http://localhost:11434",
 ) -> str:
     """
     Ask an Ollama model to craft a visual prompt for an AI image generator.
