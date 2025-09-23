@@ -714,13 +714,15 @@ class App(tk.Tk):
                     base_prompt = " ".join(re.sub(r"\s+", " ", page_text).split()[:120])
                     self.log_print("  > Using first part of page text as prompt.")
 
-                # Determine final prompt: if Llama summarisation was used and succeeded, skip enrichment
+                # Determine final prompt: if Llama summarization was used and succeeded, skip enrichment
                 if used_ollama_prompt and base_prompt.strip():
                     final_prompt = base_prompt.strip()
                 else:
                     final_prompt = enrich_prompt_with_context(bank, base_prompt, page_text=page_text)
 
                 self.log_print(f"  > Final Prompt: {final_prompt[:200]}{'...' if len(final_prompt) > 200 else ''}")
+
+                #TODO: Format the final prompt to show context separate to the actual page summary
 
                 # Write the full final prompt to a .txt file for this page (useful for debugging)
                 try:
