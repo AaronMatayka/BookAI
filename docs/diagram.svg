@@ -1,0 +1,366 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1732pt" height="594pt" viewBox="0.00 0.00 1732.00 594.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 590.2)">
+<title>G</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-590.2 1728,-590.2 1728,4 -4,4"/>
+<g id="clust1" class="cluster">
+<title>cluster_web</title>
+<polygon fill="none" stroke="#a9d0ff" points="740,-479 740,-578.2 998,-578.2 998,-479 740,-479"/>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-561.6" font-family="Times,serif" font-size="14.00">Web Layer</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_app</title>
+<polygon fill="none" stroke="#bdecc5" points="793,-373.6 793,-456 945,-456 945,-373.6 793,-373.6"/>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-439.4" font-family="Times,serif" font-size="14.00">Application</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_ports</title>
+<polygon fill="none" stroke="#ffd9a3" points="128,-271 128,-347.8 1227,-347.8 1227,-271 128,-271"/>
+<text xml:space="preserve" text-anchor="middle" x="677.5" y="-331.2" font-family="Times,serif" font-size="14.00">Ports (Interfaces)</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_adapters</title>
+<polygon fill="none" stroke="#dddddd" points="8,-162.8 8,-245.2 1341,-245.2 1341,-162.8 8,-162.8"/>
+<text xml:space="preserve" text-anchor="middle" x="674.5" y="-228.6" font-family="Times,serif" font-size="14.00">Adapters (Implementations)</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_domain</title>
+<polygon fill="none" stroke="#d7ccff" points="429,-8 429,-124 681,-124 681,-8 429,-8"/>
+<text xml:space="preserve" text-anchor="middle" x="555" y="-107.4" font-family="Times,serif" font-size="14.00">Domain (Core Knowledge)</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_services</title>
+<polygon fill="none" stroke="#ffc6d1" points="713,-27.6 713,-104.4 1135,-104.4 1135,-27.6 713,-27.6"/>
+<text xml:space="preserve" text-anchor="middle" x="924" y="-87.8" font-family="Times,serif" font-size="14.00">External Services</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_outputs</title>
+<polygon fill="none" stroke="#cccccc" points="1247,-268.2 1247,-350.6 1716,-350.6 1716,-268.2 1247,-268.2"/>
+<text xml:space="preserve" text-anchor="middle" x="1481.5" y="-334" font-family="Times,serif" font-size="14.00">Outputs</text>
+</g>
+<!-- web -->
+<g id="node1" class="node">
+<title>web</title>
+<path fill="#ddebff" stroke="#111111" d="M977.84,-545.4C977.84,-545.4 760.16,-545.4 760.16,-545.4 754.16,-545.4 748.16,-539.4 748.16,-533.4 748.16,-533.4 748.16,-499 748.16,-499 748.16,-493 754.16,-487 760.16,-487 760.16,-487 977.84,-487 977.84,-487 983.84,-487 989.84,-493 989.84,-499 989.84,-499 989.84,-533.4 989.84,-533.4 989.84,-539.4 983.84,-545.4 977.84,-545.4"/>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-528.8" font-family="Helvetica,sans-Serif" font-size="14.00">Web UI (Flask)</text>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-512" font-family="Helvetica,sans-Serif" font-size="14.00">forms, logs, per-run gallery</text>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-495.2" font-family="Helvetica,sans-Serif" font-size="14.00">composes adapters &amp; starts pipeline</text>
+</g>
+<!-- pipe -->
+<g id="node2" class="node">
+<title>pipe</title>
+<path fill="#dcf4e0" stroke="#111111" d="M924.91,-423.2C924.91,-423.2 813.09,-423.2 813.09,-423.2 807.09,-423.2 801.09,-417.2 801.09,-411.2 801.09,-411.2 801.09,-393.6 801.09,-393.6 801.09,-387.6 807.09,-381.6 813.09,-381.6 813.09,-381.6 924.91,-381.6 924.91,-381.6 930.91,-381.6 936.91,-387.6 936.91,-393.6 936.91,-393.6 936.91,-411.2 936.91,-411.2 936.91,-417.2 930.91,-423.2 924.91,-423.2"/>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-406.6" font-family="Helvetica,sans-Serif" font-size="14.00">BookAIPipeline</text>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-389.8" font-family="Helvetica,sans-Serif" font-size="14.00">(orchestration only)</text>
+</g>
+<!-- web&#45;&gt;pipe -->
+<g id="edge1" class="edge">
+<title>web-&gt;pipe</title>
+<path fill="none" stroke="black" d="M869,-486.7C869,-470.77 869,-450.89 869,-434.56"/>
+<polygon fill="black" stroke="black" points="872.5,-434.9 869,-424.9 865.5,-434.9 872.5,-434.9"/>
+</g>
+<!-- logger -->
+<g id="node3" class="node">
+<title>logger</title>
+<path fill="#fff0d9" stroke="#111111" d="M183.8,-315C183.8,-315 148.2,-315 148.2,-315 142.2,-315 136.2,-309 136.2,-303 136.2,-303 136.2,-291 136.2,-291 136.2,-285 142.2,-279 148.2,-279 148.2,-279 183.8,-279 183.8,-279 189.8,-279 195.8,-285 195.8,-291 195.8,-291 195.8,-303 195.8,-303 195.8,-309 189.8,-315 183.8,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="166" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">Logger</text>
+</g>
+<!-- pipe&#45;&gt;logger -->
+<g id="edge2" class="edge">
+<title>pipe-&gt;logger</title>
+<path fill="none" stroke="black" d="M800.77,-398.95C643.65,-392.89 265.76,-375.87 214,-350.6 201.92,-344.7 191.45,-334.33 183.39,-324.34"/>
+<polygon fill="black" stroke="black" points="186.4,-322.53 177.6,-316.63 180.81,-326.73 186.4,-322.53"/>
+</g>
+<!-- pdf -->
+<g id="node4" class="node">
+<title>pdf</title>
+<path fill="#fff0d9" stroke="#111111" d="M320.01,-315C320.01,-315 243.99,-315 243.99,-315 237.99,-315 231.99,-309 231.99,-303 231.99,-303 231.99,-291 231.99,-291 231.99,-285 237.99,-279 243.99,-279 243.99,-279 320.01,-279 320.01,-279 326.01,-279 332.01,-285 332.01,-291 332.01,-291 332.01,-303 332.01,-303 332.01,-309 326.01,-315 320.01,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="282" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">PDFExtractor</text>
+</g>
+<!-- pipe&#45;&gt;pdf -->
+<g id="edge3" class="edge">
+<title>pipe-&gt;pdf</title>
+<path fill="none" stroke="black" d="M800.68,-399.39C679.06,-395.05 430.25,-382.47 350,-350.6 334.3,-344.37 319.2,-333.37 307.23,-323.03"/>
+<polygon fill="black" stroke="black" points="309.61,-320.47 299.85,-316.36 304.92,-325.67 309.61,-320.47"/>
+</g>
+<!-- ctx -->
+<g id="node5" class="node">
+<title>ctx</title>
+<path fill="#fff0d9" stroke="#111111" d="M453.85,-315C453.85,-315 380.15,-315 380.15,-315 374.15,-315 368.15,-309 368.15,-303 368.15,-303 368.15,-291 368.15,-291 368.15,-285 374.15,-279 380.15,-279 380.15,-279 453.85,-279 453.85,-279 459.85,-279 465.85,-285 465.85,-291 465.85,-291 465.85,-303 465.85,-303 465.85,-309 459.85,-315 453.85,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="417" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">ContextStore</text>
+</g>
+<!-- pipe&#45;&gt;ctx -->
+<g id="edge4" class="edge">
+<title>pipe-&gt;ctx</title>
+<path fill="none" stroke="black" d="M800.95,-396.76C706.15,-389.56 539.69,-374.04 484,-350.6 468.69,-344.15 453.91,-333.23 442.14,-323.01"/>
+<polygon fill="black" stroke="black" points="444.66,-320.56 434.9,-316.43 439.95,-325.74 444.66,-320.56"/>
+</g>
+<!-- desc -->
+<g id="node6" class="node">
+<title>desc</title>
+<path fill="#fff0d9" stroke="#111111" d="M775.19,-315C775.19,-315 654.81,-315 654.81,-315 648.81,-315 642.81,-309 642.81,-303 642.81,-303 642.81,-291 642.81,-291 642.81,-285 648.81,-279 654.81,-279 654.81,-279 775.19,-279 775.19,-279 781.19,-279 787.19,-285 787.19,-291 787.19,-291 787.19,-303 787.19,-303 787.19,-309 781.19,-315 775.19,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="715" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">DescriptorLearner(s)</text>
+</g>
+<!-- pipe&#45;&gt;desc -->
+<g id="edge5" class="edge">
+<title>pipe-&gt;desc</title>
+<path fill="none" stroke="black" d="M838.94,-381.22C813.53,-364.15 777.08,-339.68 750.29,-321.69"/>
+<polygon fill="black" stroke="black" points="752.4,-318.89 742.15,-316.23 748.5,-324.71 752.4,-318.89"/>
+</g>
+<!-- summ -->
+<g id="node7" class="node">
+<title>summ</title>
+<path fill="#fff0d9" stroke="#111111" d="M902.73,-315C902.73,-315 835.27,-315 835.27,-315 829.27,-315 823.27,-309 823.27,-303 823.27,-303 823.27,-291 823.27,-291 823.27,-285 829.27,-279 835.27,-279 835.27,-279 902.73,-279 902.73,-279 908.73,-279 914.73,-285 914.73,-291 914.73,-291 914.73,-303 914.73,-303 914.73,-309 908.73,-315 902.73,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="869" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">Summarizer</text>
+</g>
+<!-- pipe&#45;&gt;summ -->
+<g id="edge6" class="edge">
+<title>pipe-&gt;summ</title>
+<path fill="none" stroke="black" d="M869,-381.46C869,-365.99 869,-344.33 869,-326.95"/>
+<polygon fill="black" stroke="black" points="872.5,-326.98 869,-316.98 865.5,-326.98 872.5,-326.98"/>
+</g>
+<!-- prompt -->
+<g id="node8" class="node">
+<title>prompt</title>
+<path fill="#fff0d9" stroke="#111111" d="M594.35,-315C594.35,-315 513.65,-315 513.65,-315 507.65,-315 501.65,-309 501.65,-303 501.65,-303 501.65,-291 501.65,-291 501.65,-285 507.65,-279 513.65,-279 513.65,-279 594.35,-279 594.35,-279 600.35,-279 606.35,-285 606.35,-291 606.35,-291 606.35,-303 606.35,-303 606.35,-309 600.35,-315 594.35,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="554" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">PromptBuilder</text>
+</g>
+<!-- pipe&#45;&gt;prompt -->
+<g id="edge7" class="edge">
+<title>pipe-&gt;prompt</title>
+<path fill="none" stroke="black" d="M800.82,-395.17C750.49,-388.71 681.26,-375.82 625,-350.6 609.34,-343.58 593.81,-332.65 581.29,-322.57"/>
+<polygon fill="black" stroke="black" points="583.83,-320.13 573.91,-316.42 579.35,-325.51 583.83,-320.13"/>
+</g>
+<!-- rend -->
+<g id="node9" class="node">
+<title>rend</title>
+<path fill="#fff0d9" stroke="#111111" d="M1051.64,-315C1051.64,-315 962.36,-315 962.36,-315 956.36,-315 950.36,-309 950.36,-303 950.36,-303 950.36,-291 950.36,-291 950.36,-285 956.36,-279 962.36,-279 962.36,-279 1051.64,-279 1051.64,-279 1057.64,-279 1063.64,-285 1063.64,-291 1063.64,-291 1063.64,-303 1063.64,-303 1063.64,-309 1057.64,-315 1051.64,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="1007" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">ImageRenderer</text>
+</g>
+<!-- pipe&#45;&gt;rend -->
+<g id="edge8" class="edge">
+<title>pipe-&gt;rend</title>
+<path fill="none" stroke="black" d="M895.94,-381.22C918.51,-364.3 950.8,-340.11 974.75,-322.17"/>
+<polygon fill="black" stroke="black" points="976.69,-325.09 982.59,-316.29 972.49,-319.49 976.69,-325.09"/>
+</g>
+<!-- comp -->
+<g id="node10" class="node">
+<title>comp</title>
+<path fill="#fff0d9" stroke="#111111" d="M1206.74,-315C1206.74,-315 1111.26,-315 1111.26,-315 1105.26,-315 1099.26,-309 1099.26,-303 1099.26,-303 1099.26,-291 1099.26,-291 1099.26,-285 1105.26,-279 1111.26,-279 1111.26,-279 1206.74,-279 1206.74,-279 1212.74,-279 1218.74,-285 1218.74,-291 1218.74,-291 1218.74,-303 1218.74,-303 1218.74,-309 1212.74,-315 1206.74,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="1159" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">ImageComposer</text>
+</g>
+<!-- pipe&#45;&gt;comp -->
+<g id="edge9" class="edge">
+<title>pipe-&gt;comp</title>
+<path fill="none" stroke="black" d="M937.24,-391.66C980.08,-383.98 1035.77,-371.07 1082,-350.6 1098.6,-343.25 1115.43,-332.25 1129.1,-322.21"/>
+<polygon fill="black" stroke="black" points="1130.95,-325.2 1136.82,-316.37 1126.73,-319.61 1130.95,-325.2"/>
+</g>
+<!-- out_img -->
+<g id="node23" class="node">
+<title>out_img</title>
+<path fill="#f7f7f7" stroke="#111111" d="M1350.91,-317.8C1350.91,-317.8 1267.09,-317.8 1267.09,-317.8 1261.09,-317.8 1255.09,-311.8 1255.09,-305.8 1255.09,-305.8 1255.09,-288.2 1255.09,-288.2 1255.09,-282.2 1261.09,-276.2 1267.09,-276.2 1267.09,-276.2 1350.91,-276.2 1350.91,-276.2 1356.91,-276.2 1362.91,-282.2 1362.91,-288.2 1362.91,-288.2 1362.91,-305.8 1362.91,-305.8 1362.91,-311.8 1356.91,-317.8 1350.91,-317.8"/>
+<text xml:space="preserve" text-anchor="middle" x="1309" y="-301.2" font-family="Helvetica,sans-Serif" font-size="14.00">Output Images</text>
+<text xml:space="preserve" text-anchor="middle" x="1309" y="-284.4" font-family="Helvetica,sans-Serif" font-size="14.00">(output_dir/)</text>
+</g>
+<!-- pipe&#45;&gt;out_img -->
+<g id="edge25" class="edge">
+<title>pipe-&gt;out_img</title>
+<path fill="none" stroke="black" d="M937.12,-401.68C1012.74,-399.82 1137.18,-390.18 1236,-350.6 1251.02,-344.58 1265.84,-334.82 1278.16,-325.33"/>
+<polygon fill="black" stroke="black" points="1280.27,-328.13 1285.87,-319.14 1275.88,-322.67 1280.27,-328.13"/>
+</g>
+<!-- out_prompt -->
+<g id="node24" class="node">
+<title>out_prompt</title>
+<path fill="#f7f7f7" stroke="#111111" d="M1510.69,-317.8C1510.69,-317.8 1411.31,-317.8 1411.31,-317.8 1405.31,-317.8 1399.31,-311.8 1399.31,-305.8 1399.31,-305.8 1399.31,-288.2 1399.31,-288.2 1399.31,-282.2 1405.31,-276.2 1411.31,-276.2 1411.31,-276.2 1510.69,-276.2 1510.69,-276.2 1516.69,-276.2 1522.69,-282.2 1522.69,-288.2 1522.69,-288.2 1522.69,-305.8 1522.69,-305.8 1522.69,-311.8 1516.69,-317.8 1510.69,-317.8"/>
+<text xml:space="preserve" text-anchor="middle" x="1461" y="-301.2" font-family="Helvetica,sans-Serif" font-size="14.00">prompt_XXXX.txt</text>
+<text xml:space="preserve" text-anchor="middle" x="1461" y="-284.4" font-family="Helvetica,sans-Serif" font-size="14.00">(per page)</text>
+</g>
+<!-- pipe&#45;&gt;out_prompt -->
+<g id="edge26" class="edge">
+<title>pipe-&gt;out_prompt</title>
+<path fill="none" stroke="black" d="M937.12,-398.68C1057.08,-393.22 1300.9,-378.96 1381,-350.6 1397.68,-344.7 1414.32,-334.61 1428.07,-324.84"/>
+<polygon fill="black" stroke="black" points="1429.9,-327.83 1435.87,-319.08 1425.75,-322.2 1429.9,-327.83"/>
+</g>
+<!-- out_ctx -->
+<g id="node25" class="node">
+<title>out_ctx</title>
+<path fill="#f7f7f7" stroke="#111111" d="M1695.54,-315C1695.54,-315 1570.46,-315 1570.46,-315 1564.46,-315 1558.46,-309 1558.46,-303 1558.46,-303 1558.46,-291 1558.46,-291 1558.46,-285 1564.46,-279 1570.46,-279 1570.46,-279 1695.54,-279 1695.54,-279 1701.54,-279 1707.54,-285 1707.54,-291 1707.54,-291 1707.54,-303 1707.54,-303 1707.54,-309 1701.54,-315 1695.54,-315"/>
+<text xml:space="preserve" text-anchor="middle" x="1633" y="-292.8" font-family="Helvetica,sans-Serif" font-size="14.00">context_snapshot.md</text>
+</g>
+<!-- pipe&#45;&gt;out_ctx -->
+<g id="edge27" class="edge">
+<title>pipe-&gt;out_ctx</title>
+<path fill="none" stroke="black" d="M937.28,-400.05C1084.94,-396.5 1429.63,-384.74 1541,-350.6 1561.88,-344.2 1583.18,-332.43 1600.02,-321.64"/>
+<polygon fill="black" stroke="black" points="1601.7,-324.72 1608.11,-316.28 1597.84,-318.88 1601.7,-324.72"/>
+</g>
+<!-- a_logger -->
+<g id="node11" class="node">
+<title>a_logger</title>
+<path fill="#eeeeee" stroke="#111111" d="M104.03,-209.6C104.03,-209.6 27.97,-209.6 27.97,-209.6 21.97,-209.6 15.97,-203.6 15.97,-197.6 15.97,-197.6 15.97,-185.6 15.97,-185.6 15.97,-179.6 21.97,-173.6 27.97,-173.6 27.97,-173.6 104.03,-173.6 104.03,-173.6 110.03,-173.6 116.03,-179.6 116.03,-185.6 116.03,-185.6 116.03,-197.6 116.03,-197.6 116.03,-203.6 110.03,-209.6 104.03,-209.6"/>
+<text xml:space="preserve" text-anchor="middle" x="66" y="-187.4" font-family="Helvetica,sans-Serif" font-size="14.00">StdoutLogger</text>
+</g>
+<!-- logger&#45;&gt;a_logger -->
+<g id="edge10" class="edge">
+<title>logger-&gt;a_logger</title>
+<path fill="none" stroke="black" d="M149.49,-278.93C133.52,-262.41 109.11,-237.17 90.8,-218.24"/>
+<polygon fill="black" stroke="black" points="93.39,-215.89 83.92,-211.13 88.36,-220.75 93.39,-215.89"/>
+</g>
+<!-- a_pdf -->
+<g id="node12" class="node">
+<title>a_pdf</title>
+<path fill="#eeeeee" stroke="#111111" d="M285.58,-209.6C285.58,-209.6 164.42,-209.6 164.42,-209.6 158.42,-209.6 152.42,-203.6 152.42,-197.6 152.42,-197.6 152.42,-185.6 152.42,-185.6 152.42,-179.6 158.42,-173.6 164.42,-173.6 164.42,-173.6 285.58,-173.6 285.58,-173.6 291.58,-173.6 297.58,-179.6 297.58,-185.6 297.58,-185.6 297.58,-197.6 297.58,-197.6 297.58,-203.6 291.58,-209.6 285.58,-209.6"/>
+<text xml:space="preserve" text-anchor="middle" x="225" y="-187.4" font-family="Helvetica,sans-Serif" font-size="14.00">PdfPlumberExtractor</text>
+</g>
+<!-- pdf&#45;&gt;a_pdf -->
+<g id="edge11" class="edge">
+<title>pdf-&gt;a_pdf</title>
+<path fill="none" stroke="black" d="M272.59,-278.93C263.77,-262.93 250.44,-238.76 240.13,-220.05"/>
+<polygon fill="black" stroke="black" points="243.24,-218.44 235.35,-211.37 237.11,-221.82 243.24,-218.44"/>
+</g>
+<!-- a_ctx -->
+<g id="node13" class="node">
+<title>a_ctx</title>
+<path fill="#eeeeee" stroke="#111111" d="M450.81,-209.6C450.81,-209.6 345.19,-209.6 345.19,-209.6 339.19,-209.6 333.19,-203.6 333.19,-197.6 333.19,-197.6 333.19,-185.6 333.19,-185.6 333.19,-179.6 339.19,-173.6 345.19,-173.6 345.19,-173.6 450.81,-173.6 450.81,-173.6 456.81,-173.6 462.81,-179.6 462.81,-185.6 462.81,-185.6 462.81,-197.6 462.81,-197.6 462.81,-203.6 456.81,-209.6 450.81,-209.6"/>
+<text xml:space="preserve" text-anchor="middle" x="398" y="-187.4" font-family="Helvetica,sans-Serif" font-size="14.00">ContextBankStore</text>
+</g>
+<!-- ctx&#45;&gt;a_ctx -->
+<g id="edge12" class="edge">
+<title>ctx-&gt;a_ctx</title>
+<path fill="none" stroke="black" d="M413.86,-278.93C410.99,-263.3 406.69,-239.88 403.29,-221.37"/>
+<polygon fill="black" stroke="black" points="406.73,-220.74 401.48,-211.53 399.84,-222 406.73,-220.74"/>
+</g>
+<!-- a_desc -->
+<g id="node14" class="node">
+<title>a_desc</title>
+<path fill="#eeeeee" stroke="#111111" d="M768.16,-212.4C768.16,-212.4 659.84,-212.4 659.84,-212.4 653.84,-212.4 647.84,-206.4 647.84,-200.4 647.84,-200.4 647.84,-182.8 647.84,-182.8 647.84,-176.8 653.84,-170.8 659.84,-170.8 659.84,-170.8 768.16,-170.8 768.16,-170.8 774.16,-170.8 780.16,-176.8 780.16,-182.8 780.16,-182.8 780.16,-200.4 780.16,-200.4 780.16,-206.4 774.16,-212.4 768.16,-212.4"/>
+<text xml:space="preserve" text-anchor="middle" x="714" y="-195.8" font-family="Helvetica,sans-Serif" font-size="14.00">RegexDescriptor +</text>
+<text xml:space="preserve" text-anchor="middle" x="714" y="-179" font-family="Helvetica,sans-Serif" font-size="14.00">OllamaDescriptor</text>
+</g>
+<!-- desc&#45;&gt;a_desc -->
+<g id="edge13" class="edge">
+<title>desc-&gt;a_desc</title>
+<path fill="none" stroke="black" d="M714.83,-278.93C714.69,-264.13 714.48,-242.32 714.31,-224.33"/>
+<polygon fill="black" stroke="black" points="717.81,-224.38 714.21,-214.41 710.81,-224.44 717.81,-224.38"/>
+</g>
+<!-- a_summ -->
+<g id="node15" class="node">
+<title>a_summ</title>
+<path fill="#eeeeee" stroke="#111111" d="M951.35,-212.4C951.35,-212.4 828.65,-212.4 828.65,-212.4 822.65,-212.4 816.65,-206.4 816.65,-200.4 816.65,-200.4 816.65,-182.8 816.65,-182.8 816.65,-176.8 822.65,-170.8 828.65,-170.8 828.65,-170.8 951.35,-170.8 951.35,-170.8 957.35,-170.8 963.35,-176.8 963.35,-182.8 963.35,-182.8 963.35,-200.4 963.35,-200.4 963.35,-206.4 957.35,-212.4 951.35,-212.4"/>
+<text xml:space="preserve" text-anchor="middle" x="890" y="-195.8" font-family="Helvetica,sans-Serif" font-size="14.00">OpenAISummarizer /</text>
+<text xml:space="preserve" text-anchor="middle" x="890" y="-179" font-family="Helvetica,sans-Serif" font-size="14.00">OllamaSummarizer</text>
+</g>
+<!-- summ&#45;&gt;a_summ -->
+<g id="edge14" class="edge">
+<title>summ-&gt;a_summ</title>
+<path fill="none" stroke="black" d="M872.47,-278.93C875.49,-264.06 879.94,-242.12 883.61,-224.08"/>
+<polygon fill="black" stroke="black" points="887.02,-224.88 885.58,-214.38 880.16,-223.48 887.02,-224.88"/>
+</g>
+<!-- a_prompt -->
+<g id="node16" class="node">
+<title>a_prompt</title>
+<path fill="#eeeeee" stroke="#111111" d="M599.63,-209.6C599.63,-209.6 510.37,-209.6 510.37,-209.6 504.37,-209.6 498.37,-203.6 498.37,-197.6 498.37,-197.6 498.37,-185.6 498.37,-185.6 498.37,-179.6 504.37,-173.6 510.37,-173.6 510.37,-173.6 599.63,-173.6 599.63,-173.6 605.63,-173.6 611.63,-179.6 611.63,-185.6 611.63,-185.6 611.63,-197.6 611.63,-197.6 611.63,-203.6 605.63,-209.6 599.63,-209.6"/>
+<text xml:space="preserve" text-anchor="middle" x="555" y="-187.4" font-family="Helvetica,sans-Serif" font-size="14.00">PromptEnricher</text>
+</g>
+<!-- prompt&#45;&gt;a_prompt -->
+<g id="edge15" class="edge">
+<title>prompt-&gt;a_prompt</title>
+<path fill="none" stroke="black" d="M554.17,-278.93C554.32,-263.3 554.54,-239.88 554.72,-221.37"/>
+<polygon fill="black" stroke="black" points="558.22,-221.59 554.82,-211.56 551.22,-221.52 558.22,-221.59"/>
+</g>
+<!-- a_rend -->
+<g id="node17" class="node">
+<title>a_rend</title>
+<path fill="#eeeeee" stroke="#111111" d="M1129,-209.6C1129,-209.6 1011,-209.6 1011,-209.6 1005,-209.6 999,-203.6 999,-197.6 999,-197.6 999,-185.6 999,-185.6 999,-179.6 1005,-173.6 1011,-173.6 1011,-173.6 1129,-173.6 1129,-173.6 1135,-173.6 1141,-179.6 1141,-185.6 1141,-185.6 1141,-197.6 1141,-197.6 1141,-203.6 1135,-209.6 1129,-209.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1070" y="-187.4" font-family="Helvetica,sans-Serif" font-size="14.00">ComfyClient (HTTP)</text>
+</g>
+<!-- rend&#45;&gt;a_rend -->
+<g id="edge16" class="edge">
+<title>rend-&gt;a_rend</title>
+<path fill="none" stroke="black" d="M1017.4,-278.93C1027.19,-262.86 1042.01,-238.53 1053.43,-219.79"/>
+<polygon fill="black" stroke="black" points="1056.37,-221.7 1058.58,-211.34 1050.39,-218.06 1056.37,-221.7"/>
+</g>
+<!-- a_comp -->
+<g id="node18" class="node">
+<title>a_comp</title>
+<path fill="#eeeeee" stroke="#111111" d="M1321.03,-209.6C1321.03,-209.6 1188.97,-209.6 1188.97,-209.6 1182.97,-209.6 1176.97,-203.6 1176.97,-197.6 1176.97,-197.6 1176.97,-185.6 1176.97,-185.6 1176.97,-179.6 1182.97,-173.6 1188.97,-173.6 1188.97,-173.6 1321.03,-173.6 1321.03,-173.6 1327.03,-173.6 1333.03,-179.6 1333.03,-185.6 1333.03,-185.6 1333.03,-197.6 1333.03,-197.6 1333.03,-203.6 1327.03,-209.6 1321.03,-209.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1255" y="-187.4" font-family="Helvetica,sans-Serif" font-size="14.00">PillowImageComposer</text>
+</g>
+<!-- comp&#45;&gt;a_comp -->
+<g id="edge17" class="edge">
+<title>comp-&gt;a_comp</title>
+<path fill="none" stroke="black" d="M1174.85,-278.93C1190.18,-262.41 1213.62,-237.17 1231.19,-218.24"/>
+<polygon fill="black" stroke="black" points="1233.53,-220.86 1237.77,-211.15 1228.4,-216.1 1233.53,-220.86"/>
+</g>
+<!-- domain -->
+<g id="node19" class="node">
+<title>domain</title>
+<path fill="#efeafe" stroke="#111111" d="M661.08,-91.2C661.08,-91.2 448.92,-91.2 448.92,-91.2 442.92,-91.2 436.92,-85.2 436.92,-79.2 436.92,-79.2 436.92,-28 436.92,-28 436.92,-22 442.92,-16 448.92,-16 448.92,-16 661.08,-16 661.08,-16 667.08,-16 673.08,-22 673.08,-28 673.08,-28 673.08,-79.2 673.08,-79.2 673.08,-85.2 667.08,-91.2 661.08,-91.2"/>
+<text xml:space="preserve" text-anchor="middle" x="555" y="-74.6" font-family="Helvetica,sans-Serif" font-size="14.00">context.py</text>
+<text xml:space="preserve" text-anchor="middle" x="555" y="-57.8" font-family="Helvetica,sans-Serif" font-size="14.00">- ContextBank (entities/aliases)</text>
+<text xml:space="preserve" text-anchor="middle" x="555" y="-41" font-family="Helvetica,sans-Serif" font-size="14.00">- DescriptorExtractor (spaCy/regex)</text>
+<text xml:space="preserve" text-anchor="middle" x="555" y="-24.2" font-family="Helvetica,sans-Serif" font-size="14.00">- enrich_prompt_with_context()</text>
+</g>
+<!-- a_ctx&#45;&gt;domain -->
+<g id="edge18" class="edge">
+<title>a_ctx-&gt;domain</title>
+<path fill="none" stroke="black" d="M417.88,-173.38C439.36,-154.77 474.44,-124.38 503.74,-99"/>
+<polygon fill="black" stroke="black" points="505.82,-101.83 511.09,-92.64 501.24,-96.54 505.82,-101.83"/>
+<text xml:space="preserve" text-anchor="middle" x="474.49" y="-136.2" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- a_desc&#45;&gt;domain -->
+<g id="edge19" class="edge">
+<title>a_desc-&gt;domain</title>
+<path fill="none" stroke="black" d="M690.54,-170.53C668.62,-151.78 635.13,-123.14 606.93,-99.02"/>
+<polygon fill="black" stroke="black" points="609.39,-96.52 599.52,-92.68 604.84,-101.84 609.39,-96.52"/>
+<text xml:space="preserve" text-anchor="middle" x="674.63" y="-136.2" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- ollama -->
+<g id="node21" class="node">
+<title>ollama</title>
+<path fill="#ffeff2" stroke="#111111" d="M814.73,-71.6C814.73,-71.6 733.27,-71.6 733.27,-71.6 727.27,-71.6 721.27,-65.6 721.27,-59.6 721.27,-59.6 721.27,-47.6 721.27,-47.6 721.27,-41.6 727.27,-35.6 733.27,-35.6 733.27,-35.6 814.73,-35.6 814.73,-35.6 820.73,-35.6 826.73,-41.6 826.73,-47.6 826.73,-47.6 826.73,-59.6 826.73,-59.6 826.73,-65.6 820.73,-71.6 814.73,-71.6"/>
+<text xml:space="preserve" text-anchor="middle" x="774" y="-49.4" font-family="Helvetica,sans-Serif" font-size="14.00">Ollama Server</text>
+</g>
+<!-- a_desc&#45;&gt;ollama -->
+<g id="edge23" class="edge">
+<title>a_desc-&gt;ollama</title>
+<path fill="none" stroke="black" d="M722.85,-170.53C733.18,-147.13 750.3,-108.31 761.86,-82.11"/>
+<polygon fill="black" stroke="black" points="765,-83.68 765.83,-73.12 758.59,-80.86 765,-83.68"/>
+</g>
+<!-- openai -->
+<g id="node20" class="node">
+<title>openai</title>
+<path fill="#ffeff2" stroke="#111111" d="M940.97,-71.6C940.97,-71.6 875.03,-71.6 875.03,-71.6 869.03,-71.6 863.03,-65.6 863.03,-59.6 863.03,-59.6 863.03,-47.6 863.03,-47.6 863.03,-41.6 869.03,-35.6 875.03,-35.6 875.03,-35.6 940.97,-35.6 940.97,-35.6 946.97,-35.6 952.97,-41.6 952.97,-47.6 952.97,-47.6 952.97,-59.6 952.97,-59.6 952.97,-65.6 946.97,-71.6 940.97,-71.6"/>
+<text xml:space="preserve" text-anchor="middle" x="908" y="-49.4" font-family="Helvetica,sans-Serif" font-size="14.00">OpenAI API</text>
+</g>
+<!-- a_summ&#45;&gt;openai -->
+<g id="edge21" class="edge">
+<title>a_summ-&gt;openai</title>
+<path fill="none" stroke="black" d="M892.66,-170.53C895.73,-147.34 900.8,-109 904.27,-82.81"/>
+<polygon fill="black" stroke="black" points="907.69,-83.61 905.53,-73.23 900.75,-82.69 907.69,-83.61"/>
+</g>
+<!-- a_summ&#45;&gt;ollama -->
+<g id="edge22" class="edge">
+<title>a_summ-&gt;ollama</title>
+<path fill="none" stroke="black" d="M872.88,-170.53C852.48,-146.61 818.33,-106.57 795.98,-80.37"/>
+<polygon fill="black" stroke="black" points="798.75,-78.22 789.6,-72.89 793.42,-82.77 798.75,-78.22"/>
+</g>
+<!-- a_prompt&#45;&gt;domain -->
+<g id="edge20" class="edge">
+<title>a_prompt-&gt;domain</title>
+<path fill="none" stroke="black" d="M555,-173.38C555,-155.73 555,-127.48 555,-102.96"/>
+<polygon fill="black" stroke="black" points="558.5,-103.16 555,-93.16 551.5,-103.16 558.5,-103.16"/>
+<text xml:space="preserve" text-anchor="middle" x="567.06" y="-136.2" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- comfy -->
+<g id="node22" class="node">
+<title>comfy</title>
+<path fill="#ffeff2" stroke="#111111" d="M1114.67,-71.6C1114.67,-71.6 1001.33,-71.6 1001.33,-71.6 995.33,-71.6 989.33,-65.6 989.33,-59.6 989.33,-59.6 989.33,-47.6 989.33,-47.6 989.33,-41.6 995.33,-35.6 1001.33,-35.6 1001.33,-35.6 1114.67,-35.6 1114.67,-35.6 1120.67,-35.6 1126.67,-41.6 1126.67,-47.6 1126.67,-47.6 1126.67,-59.6 1126.67,-59.6 1126.67,-65.6 1120.67,-71.6 1114.67,-71.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1058" y="-49.4" font-family="Helvetica,sans-Serif" font-size="14.00">ComfyUI HTTP API</text>
+</g>
+<!-- a_rend&#45;&gt;comfy -->
+<g id="edge24" class="edge">
+<title>a_rend-&gt;comfy</title>
+<path fill="none" stroke="black" d="M1068.48,-173.38C1066.47,-150.59 1062.9,-110.12 1060.49,-82.83"/>
+<polygon fill="black" stroke="black" points="1064.01,-82.85 1059.64,-73.19 1057.03,-83.46 1064.01,-82.85"/>
+</g>
+</g>
+</svg>

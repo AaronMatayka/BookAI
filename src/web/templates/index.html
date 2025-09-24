@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>BookAI – Web</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Backdrop for small screens (click to close) -->
+  <div class="nav-backdrop" id="nav-backdrop"></div>
+
+  <!-- Collapsible left nav -->
+  <aside class="sidenav" id="sidenav">
+    <div class="sidenav-header">
+      <div class="brand">BookAI</div>
+    </div>
+    <nav class="nav-links">
+      <button class="nav-link active" data-view="generate">Generate</button>
+      <button class="nav-link" data-view="gallery">Gallery</button>
+    </nav>
+  </aside>
+
+  <!-- Main area -->
+  <div class="app-main">
+    <header class="app-header">
+      <button class="hamburger" id="hamburger"
+              aria-label="Toggle navigation"
+              aria-controls="sidenav"
+              aria-expanded="true">☰</button>
+      <h1>BookAI – Web Interface</h1>
+      <p class="muted">A tiny UI around your BookAI engine.</p>
+    </header>
+
+    <main>
+
+      <!-- ========== GENERATE VIEW ========== -->
+      <section class="view" id="view-generate">
+        <section class="card">
+          <h2>Run Settings</h2>
+
+          <!-- Symmetric two-column grid -->
+          <form id="run-form" action="/start" method="post" enctype="multipart/form-data" class="grid-2">
+            <label>Input PDF (upload or keep previous)
+              <input type="file" name="input_pdf" accept=".pdf">
+            </label>
+
+            <label>Workflow JSON (upload or keep previous)
+              <input type="file" name="workflow_file" accept=".json">
+            </label>
+
+            <label>Output Folder
+              <input type="text" name="output_dir" value="{{ s.output_dir }}">
+            </label>
+
+            <label>Context Snapshot File
+              <input type="text" name="context_file" value="{{ s.context_file or '' }}">
+            </label>
+
+            <label>Pages (e.g. 1-5, 8)
+              <input type="text" name="pages_range" value="{{ s.pages_range }}">
+            </label>
+
+            <label>ComfyUI URL
+              <input type="text" name="comfy_url" value="{{ s.comfy_url }}">
+            </label>
+
+            <label>Ollama URL
+              <input type="text" name="ollama_url" value="{{ s.ollama_url }}">
+            </label>
+
+            <label>Ollama Model
+              <input type="text" name="ollama_model" value="{{ s.ollama_model }}">
+            </label>
+
+            <label>Inject into CLIP Node ID (optional)
+              <input type="text" name="clip_node_id" value="{{ s.clip_node_id }}">
+            </label>
+
+            <label>OpenAI API Key (optional)
+              <input type="password" name="openai_key" value="{{ s.openai_key }}">
+            </label>
+
+            <!-- Full-width row for checkboxes -->
+            <div class="checks span-2">
+              <label><input type="checkbox" name="summarise" {{ 'checked' if s.summarise else '' }}> Summarise pages</label>
+              <label><input type="checkbox" name="learn_descriptors" {{ 'checked' if s.learn_descriptors else '' }}> Auto-learn descriptors</label>
+              <label><input type="checkbox" name="reset_context" {{ 'checked' if s.reset_context else '' }}> Reset context first</label>
+              <label><input type="checkbox" name="skip_existing" {{ 'checked' if s.skip_existing else '' }}> Skip existing images</label>
+              <label><input type="checkbox" name="add_text_under_image" {{ 'checked' if s.add_text_under_image else '' }}> Add page text under image</label>
+            </div>
+
+            <!-- Full-width row for submit -->
+            <div class="actions span-2">
+              <button id="start-btn" type="submit">Start Generation</button>
+              <span id="status" class="muted">Idle</span>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Logs</h2>
+          <pre id="logs" class="logs">(no logs yet)</pre>
+        </section>
+
+        <section class="card">
+          <h2>Current Run – Output Gallery</h2>
+          <p class="muted">New images appear live. Click any to open in a new tab.</p>
+          <div id="gallery" class="gallery"></div>
+        </section>
+      </section>
+
+      <!-- ========== GALLERY VIEW (all files in output folder) ========== -->
+      <section class="view hidden" id="view-gallery">
+        <section class="card">
+          <h2>All Outputs</h2>
+          <p class="muted">Everything currently in your output folder.</p>
+          <div id="all-gallery" class="gallery"></div>
+        </section>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

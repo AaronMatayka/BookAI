@@ -1,3 +1,6 @@
+#Core Web UI
+flask
+
 #Core PDF and image processing
 pdfplumber
 Pillow

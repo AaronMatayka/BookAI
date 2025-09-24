@@ -1,3 +1,4 @@
+# src/domain/context.py
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
@@ -57,48 +58,32 @@ class ContextBank:
 
     def upsert(self, name: str, description: str, aliases: Optional[List[str]] = None) -> None:
         """
-        Adds or updates an entity in the context bank.
-
-        This method attempts to intelligently merge names that refer to the same character
-        by looking for similar existing names or matching aliases.  It also deduplicates
-        descriptions and prunes generic placeholder descriptions once more specific
-        information is available.
+        Adds or updates an entity in the context bank (merge by similarity, keep aliases & dedupe descriptions).
         """
         name = (name or "").strip()
         if not name:
             return
 
-        # Normalize provided aliases
         aliases = [a.strip() for a in aliases or [] if a and a.strip() and a.strip().lower() != name.lower()]
 
-        # Find an existing entity that is similar to this name or its aliases
         def find_similar(target: str, alias_list: List[str]) -> Optional[str]:
             t_lower = target.lower()
-            # Build a set of candidate strings to match against (name + aliases)
             candidates = {t_lower}
             candidates.update(a.lower() for a in alias_list)
             for existing, meta in self.data.get("entities", {}).items():
                 existing_lower = existing.lower()
-                # Exact match
                 if existing_lower in candidates:
                     return existing
-                # Match by first word (e.g., "Clary" matches "Clary Fray")
                 if existing_lower.split()[0] == t_lower.split()[0]:
                     return existing
-                # Match if one name contains the other (substring)
                 if existing_lower in t_lower or t_lower in existing_lower:
                     return existing
-                # Match against existing aliases
                 for al in meta.get("aliases", []):
                     al_lower = al.lower()
                     if al_lower in candidates or al_lower == t_lower:
                         return existing
-                    # substring match for aliases
                     if al_lower in t_lower or t_lower in al_lower:
                         return existing
-            # Fallback: if the new name contains a generic noun such as 'girl' or 'boy',
-            # attempt to unify only with existing names that contain the *same* generic noun.
-            # This prevents merging disparate characters (e.g., a girl with a boy).
             generic_labels = {"girl", "boy", "woman", "man"}
             t_words = set(re.split(r"\W+", t_lower))
             target_generics = generic_labels & t_words
@@ -110,34 +95,21 @@ class ContextBank:
                         return existing_name
             return None
 
-        # Determine the canonical name key for this entity
         canonical = find_similar(name, aliases)
-        if canonical:
-            name_key = canonical
-        else:
-            name_key = name
+        name_key = canonical or name
 
-        # If we merged into an existing entity, add the original name as an alias
         entity = self.data.setdefault("entities", {}).setdefault(name_key, {"aliases": [], "description": ""})
 
-        # Collect current aliases as a set for deduplication
         current_aliases: set[str] = set(meta.strip() for meta in entity.get("aliases", []))
-        # If the new name is different from the canonical, record it as an alias
         if name_key != name:
             current_aliases.add(name)
-        # Merge provided aliases
         current_aliases.update(a for a in aliases if a and a.lower() != name_key.lower())
-        # Do not include the canonical name as its own alias
         current_aliases.discard(name_key)
 
-        # Merge descriptions, avoiding duplicates and pruning generic placeholders
         new_desc = (description or "").strip()
         if new_desc:
-            # Build set of existing descriptions (case‑insensitive) for deduplication
             existing_descs = set(d.strip() for d in str(entity.get("description", "")).split(';') if d.strip())
             existing_descs.add(new_desc)
-            # Remove generic descriptors if at least one specific description is present
-            # Generic descriptors are those that state no specific details are given
             generic_keywords = [
                 "no specific description", "no specific physical description",
                 "no specific visual descriptors", "no physical description",
@@ -153,11 +125,9 @@ class ContextBank:
                 }
             entity["description"] = "; ".join(sorted(list(existing_descs)))
 
-        # Save merged aliases
         if current_aliases:
             entity["aliases"] = sorted(list(current_aliases))
 
-        # Invalidate regex cache
         self._compiled_regex = None
 
     def _get_regex(self) -> re.Pattern:
@@ -170,15 +140,11 @@ class ContextBank:
             names.append(base)
             names.extend(meta.get("aliases", []))
 
-        # Sort parts by length, longest first, to avoid partial matches (e.g., "Clary Fray" before "Clary")
         parts = sorted({re.escape(n) for n in names if n.strip()}, key=len, reverse=True)
-
         if not parts:
-            # Return a regex that will never match anything
             self._compiled_regex = re.compile(r"$a")
         else:
             self._compiled_regex = re.compile(r"\b(" + "|".join(parts) + r")\b", re.IGNORECASE)
-
         return self._compiled_regex
 
     def matches_in_text(self, text: str) -> List[str]:
@@ -190,13 +156,10 @@ class ContextBank:
         """Creates a formatted string snippet of context for given matches."""
         if not matches:
             return ""
-
-        # Map aliases back to their canonical names
         canonical_map: Dict[str, str] = {}
         for base, meta in self.data.get("entities", {}).items():
             for alias in [base] + meta.get("aliases", []):
                 canonical_map[alias.lower()] = base
-
         bases_in_order = []
         seen_bases = set()
         for match in matches:
@@ -204,7 +167,6 @@ class ContextBank:
             if base_name and base_name not in seen_bases:
                 bases_in_order.append(base_name)
                 seen_bases.add(base_name)
-
         parts = []
         for base in bases_in_order:
             desc = str(self.data["entities"].get(base, {}).get("description", "")).strip()
@@ -219,14 +181,10 @@ class ContextBank:
 
 class DescriptorExtractor:
     """
-    Extracts character/location descriptors from text using spaCy for robust
-    linguistic analysis or a fallback regex method.
+    Extracts character/location descriptors from text using spaCy (if available)
+    or a regex fallback.
     """
     _VISUAL_KEYWORDS = {
-        # Words that indicate potentially visual descriptors.  These keywords are used
-        # to filter extracted clauses so that only phrases with imagery value are
-        # returned.  When extending this set, prefer lower‑case singular forms to
-        # maximize matching (e.g. "glass" would not match "glasses").
         "hair", "eye", "eyes", "beard", "freckle", "scar", "tattoo", "tall", "short",
         "slim", "thin", "stocky", "broad", "gaunt", "muscular", "built", "slender",
         "pale", "fair", "dark", "tan", "olive", "red", "blonde", "brown", "black",
@@ -234,7 +192,6 @@ class DescriptorExtractor:
         "nose", "lips", "mouth", "soft", "sharp", "angular", "jacket", "coat",
         "dress", "boots", "jeans", "leather", "hoodie", "shirt", "gown", "cape",
         "young", "teenage", "fifteen", "old", "ancient", "slender", "lithe", "glasses",
-        # Additional terms seen in the book that should trigger descriptor extraction
         "glasses",
     }
 
@@ -248,20 +205,15 @@ class DescriptorExtractor:
                 print("For better results, run: python -m spacy download en_core_web_sm")
 
     def suggest(self, text: str) -> List[Descriptor]:
-        """Suggests a list of descriptors found in the text."""
         if not text:
             return []
-
-        # Use spaCy if available, otherwise fall back to simpler regex
         items = self._suggest_spacy(text) if self.nlp else self._suggest_regex(text)
         return self._dedupe(items)
 
     def _is_visual(self, s: str) -> bool:
-        """Checks if a string contains any of our visual keywords."""
         return any(f' {k} ' in f' {s.lower()} ' for k in self._VISUAL_KEYWORDS)
 
     def _suggest_spacy(self, text: str) -> List[Descriptor]:
-        """Extracts descriptors using spaCy's linguistic features."""
         out: List[Descriptor] = []
         doc = self.nlp(text)
 
@@ -269,20 +221,14 @@ class DescriptorExtractor:
             if ent.label_ not in ["PERSON", "GPE", "LOC", "ORG"]:
                 continue
 
-            # --- Primary Description (e.g., "Clary is...") ---
             description = self._extract_spacy_description_for_entity(ent)
             if description and self._is_visual(description):
                 out.append(Descriptor(ent.text, description, self._default_aliases(ent.text)))
 
-            # --- Possessive Descriptions (e.g., "The boy's eyes were green") ---
-            # A Span's root token is the word that connects it to the rest of the sentence.
-            # We look at this token's children for possessive relationships.
             root_token = ent.root
             for child in root_token.children:
                 if child.dep_ == 'poss':
-                    # child is the possessed noun (e.g., 'eyes')
                     possessed_noun = child
-                    # Now find the description of this possessed noun
                     possessed_desc = self._extract_spacy_description_for_entity(possessed_noun)
                     if possessed_desc and self._is_visual(possessed_desc):
                         full_desc = f"{possessed_noun.text} {possessed_desc}"
@@ -290,105 +236,69 @@ class DescriptorExtractor:
         return out
 
     def _extract_spacy_description_for_entity(self, ent_or_token: Span | Token) -> str:
-        """
-        Finds descriptive phrases linked to a spaCy entity or token.
-        This handles cases like "Clary is tall" and "a girl with red hair".
-        """
-        # Pattern 1: Appositive (e.g., "Clary, a girl with red hair, ...")
-        # We look for an appositional modifier directly following the entity.
         if hasattr(ent_or_token, 'rights'):
             for token in ent_or_token.rights:
                 if token.dep_ == "appos":
-                    # Reconstruct the full appositive phrase
                     appos_phrase = " ".join([t.text for t in token.subtree])
                     return appos_phrase.strip()
 
-        # Pattern 2: Predicative Adjectives/Nouns (e.g., "Clary was tall", "Her hair was red")
-        # Find the root verb of the entity/token and check if it's descriptive.
-        # A Span object doesn't have a .head, but its .root token does.
         token_root = ent_or_token.root if isinstance(ent_or_token, Span) else ent_or_token
-
         verb_head = token_root.head
         if verb_head.lemma_ in ("be", "seem", "look", "appear"):
-            # Collect attributes or adjectival complements
             full_desc_parts = []
             for child in verb_head.children:
                 if child.dep_ in ("attr", "acomp"):
-                    # Reconstruct the full descriptive phrase from the subtree
                     desc_phrase = " ".join(t.text for t in child.subtree)
                     full_desc_parts.append(desc_phrase)
             if full_desc_parts:
                 return " ".join(full_desc_parts)
-
         return ""
 
     def _suggest_regex(self, text: str) -> List[Descriptor]:
-        """A fallback method to extract descriptors using regular expressions."""
         out: List[Descriptor] = []
         last_person: Optional[str] = None
 
-        # Regex for "Name, a/an/the <description>," or "Name is/was/had <description>."
         name_pattern = r"\b([A-Z][a-z']+(?:\s[A-Z][a-z']+)?)\b"
         patterns = [
             re.compile(rf"{name_pattern}\s*,\s*(?:a|an|the)?\s*([a-zA-Z\s\-]+?),", re.IGNORECASE),
             re.compile(rf"{name_pattern}\s+(?:is|was|had|wore)\s+([^\.]+)\.", re.IGNORECASE),
             re.compile(rf"(He|She)\s+(?:is|was|had|wore)\s+([^\.]+)\.", re.IGNORECASE),
-            # NEW: “Name … in/with …”
             re.compile(rf"{name_pattern}[^\.]*?\b(?:in|with)\s+([^\,\.]+)", re.IGNORECASE),
-            # NEW: “His/Her … hair …” (allows adjectives before hair)
             re.compile(r"(His|Her)[^\.]*?\bhair\s+(?:was|is|were|looked|appeared|seemed)?\s*([^\,\.]+)", re.IGNORECASE),
-            # NEW: “His/Her glasses …”
-            re.compile(r"(His|Her)\s+glasses\s+(?:were|are|looked|appeared|seemed|perched)?\s*([^\,\.]+)",
-                       re.IGNORECASE),
+            re.compile(r"(His|Her)\s+glasses\s+(?:were|are|looked|appeared|seemed|perched)?\s*([^\,\.]+)", re.IGNORECASE),
         ]
 
         for line in text.split('\n'):
             for pat in patterns:
                 for match in pat.finditer(line):
                     name, desc = match.groups()
-                    # Pronoun references ('he', 'she', 'his', 'her') are resolved to the
-                    # most recently mentioned person (stored in last_person).  If the
-                    # pronoun is found and we already have a last_person, we attach
-                    # the description to them.  Otherwise, we treat the matched
-                    # name as a new entity and store it in last_person for future
-                    # pronoun resolution.
-                    lower_name = name.lower()
-                    # Only consider tokens that either represent a pronoun or begin with an
-                    # uppercase letter.  This filters out accidental matches like
-                    # 'scrubbed hair' which may be captured due to case‑insensitive
-                    # matching of the regex.  A valid character name will always
-                    # start with a capital letter.
+                    lower_name = (name or "").lower()
                     is_pronoun = lower_name in ('he', 'she', 'his', 'her')
                     if not is_pronoun and not name[0].isupper():
-                        continue  # skip lowercase names completely
-
+                        continue
                     if is_pronoun:
                         if last_person and self._is_visual(desc):
                             out.append(Descriptor(last_person, desc.strip(), []))
                     else:
                         if self._is_visual(desc):
-                            out.append(Descriptor(name.strip(), desc.strip(), self._default_aliases(name.strip())))
+                            n = name.strip()
+                            out.append(Descriptor(n, desc.strip(), self._default_aliases(n)))
                         last_person = name.strip()
         return out
 
     @staticmethod
     def _default_aliases(name: str) -> List[str]:
-        """Generates simple aliases (like the first name) from a full name."""
         parts = name.split()
-        if len(parts) > 1:
-            return [parts[0]]
-        return []
+        return [parts[0]] if len(parts) > 1 else []
 
     @staticmethod
     def _dedupe(items: List[Descriptor]) -> List[Descriptor]:
-        """Deduplicates a list of descriptors based on name and description."""
         merged: Dict[str, Descriptor] = {}
         for d in items:
             name_lower = d.name.lower()
             if name_lower not in merged:
                 merged[name_lower] = d
             else:
-                # Merge descriptions and aliases
                 existing = merged[name_lower]
                 existing_descs = set(s.strip() for s in existing.description.split(';') if s.strip())
                 existing_descs.add(d.description.strip())
@@ -403,5 +313,4 @@ class DescriptorExtractor:
 def enrich_prompt_with_context(bank: ContextBank, base_prompt: str, page_text: str) -> str:
     """Adds relevant context to a base prompt."""
     snippet = bank.relevant_snippet(page_text or "")
-    # Place context at the beginning for better prompt influence
     return f"In a scene where {snippet}: {base_prompt}" if snippet else base_prompt

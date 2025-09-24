@@ -1,74 +1,131 @@
-# BookAI - AI Book Illustrator
+# 📖 BookAI – Context-Aware Book Illustrator
 
-This application reads a book, or any PDF, extracts character and location descriptions per page to build a "context bank," and then generates images for each page using ComfyUI or online image generators (WIP)
+BookAI turns an entire book (or any PDF) into a **collection of images**.  
+It automatically generates page-by-page illustrations, while learning details about characters and settings to keep them **visually consistent across the story**.  
 
+In other words: you give it a book → it gives you a gallery of illustrations, one per page, enriched by context-aware prompts.
 
-The goal is to create context-aware illustrations. As the program reads the book, it learns details (e.g., "Clary has red hair," "Jace has gold eyes"). For later pages, it injects this learned context into the image prompt, ensuring characters are visually consistent.
+---
 
-For example, a simple prompt from page 100 of the book "City of Bones", like "Clary enters the room" might become "Clary (a fifteen-year-old girl with red hair and freckles) enters the room," leading to a much more accurate image.
+## ✨ What It Does
 
-## Setup
+- **Reads your book/PDF**: extracts text from each page.  
+- **Learns context over time**: builds a "context bank" of characters and descriptors (e.g., *“Clary: red hair, freckles”*, *“Jace: golden eyes”*).  
+- **Builds enriched prompts**: merges raw page text with context (e.g.,  
+  `"Clary enters the room"` → `"Clary (a 15-year-old girl with red hair and freckles) enters the room"`).  
+- **Generates illustrations**: injects prompts into your ComfyUI workflow, producing page-specific images.  
+- **Outputs a gallery**: every run creates a collection of images, prompts, and snapshots.  
 
-Dependencies: Install the required Python libraries. It's highly recommended to use a virtual environment.
-##### To create venv:
+---
+
+## 🖼 Example
+
+Input (page 100, *City of Bones*):  
+```
+Clary enters the room.
+```
+
+Output prompt:  
+```
+Clary (a fifteen-year-old girl with red hair and freckles) enters the room.
+```
+
+Which yields a more **faithful illustration**, and the character will look the same in later pages.
+
+---
+
+## ⚙️ Setup
+
+We recommend using a Python virtual environment.
+
 ```bash
+# Create venv
 python3 -m venv venv
-```
 
-##### To activate venv:
-```bash
-source venv/bin/activate or activate.fish
-```
+# Activate venv
+source venv/bin/activate    # or activate.fish
 
-##### To install dependencies
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-##### NLP Model (Recommended):
-For the best descriptor extraction results, the program uses the `spaCy` library. You'll need to download its small English model. (WIP, currently working on using an LLM through Ollama for context-aware information generation, as I was struggling with using local options like regex and spaCy for the project.) 
+### Optional: spaCy NLP model
+For better descriptor extraction, install the small English spaCy model:
+
 ```bash
 python -m spacy download en_core_web_sm
 ```
 
-> (The program will still function without this, but the context-learning will be less effective.)
+> Without this, BookAI will still work, but descriptor learning will rely on regex rules and Ollama LLMs.
 
-## ComfyUI:
-Make sure your ComfyUI instance is running. The default URL is http://127.0.0.1:8188, but you can change this in the app.
+---
 
-> In the BookAI application, you'll need to point to a ComfyUI workflow file of the API variant.
+## 🖥️ ComfyUI
 
-## How to Run
+Make sure your ComfyUI instance is running.  
+Default URL: [http://127.0.0.1:8188](http://127.0.0.1:8188).  
+You’ll need to point BookAI to a ComfyUI **workflow JSON** (the “API variant”).
 
-Simply execute the main Python script:
+---
+
+## ▶️ How to Run
+
+Start the Flask web interface:
 
 ```bash
-python bookai_application.py
+python -m bookai.web.app
 ```
 
-Fill in the fields in the user interface and click "Generate".
+Then open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.  
+From there you can:  
 
+- Configure PDF, output folder, API keys, and workflow.  
+- Watch logs stream in real-time.  
+- See images appear in the **per-run gallery**.  
+- Browse all generated outputs in the **Gallery tab**.  
 
-## How It Works
+---
 
-PDF Parsing: The app reads the text from each page of your selected PDF.
+## 🔍 How It Works (High Level)
 
-### ENTIRE FILE WIP:
-#### Context Learning (context_bank.py):
-- For each page, the `DescriptorExtractor` looks for named entities (people, places).
-- It uses advanced logic (`spaCy` or `regex`) to find visual descriptions attached to those entities, including handling appositives ("Clary, a girl with red hair..."), possessives ("The boy's eyes were green..."), and simple coreferences ("A boy walked in. He had blue hair...").
-- This information is saved to `context_bank.json` in your config folder. The descriptions become richer as the app reads more of the book.
+1. **PDF Parsing** – extracts raw text per page.  
+2. **Context Learning** – updates `context_bank.json` with character descriptors using:
+   - Regex / spaCy  
+   - Ollama LLMs (for smarter extraction)  
+3. **Prompt Generation** – combines page text + context, optionally summarizes with OpenAI or Ollama.  
+4. **Image Generation** – injects prompt into ComfyUI workflow, queues run, downloads results.  
+5. **Outputs** – a gallery of images, context snapshots, and prompts per run.  
 
-#### Prompt Generation:
-- It takes the raw text of the current page.
-- Optionally (if an OpenAI key is provided), it uses GPT-4o-mini to summarize the page into a concise, visual scene description (untested). If not, it uses the first chunk of text from the page.
-- It then enriches this summary by injecting the relevant learned context for any characters mentioned on that specific page.
+---
 
-#### Image Generation (bookai_application.py):
-- It connects to your ComfyUI API.
-- It dynamically injects the final, context-rich prompt into the text nodes of your chosen workflow JSON.
-- It sets a unique, deterministic seed for each page number.
-- It queues the prompt, waits for the image to be generated, and downloads it to your output folder.
-#### Ollama Integration (ollama_connector.py) 
-- It connects to Ollama, by default on http://127.0.0.1:11434.
-- It then will use the user-specified LLM to generate both the context-important information for the `context.md` file, such as Clary has red hair, and the final prompt for the image generator, by taking the page of the book as input, injecting relevant info from the `context.md` file, and injecting this to ComfyUI for the image generation pipeline.
+## 📚 Documentation
+
+See [docs/structure.md](docs/structure.md) for:  
+- File-by-file breakdown  
+- Folder responsibilities  
+- Coding style guidelines  
+- Detailed workflow and architecture diagram  
+
+---
+
+## 🚧 Status
+
+- ✅ Core PDF → Context → Prompt → Image pipeline  
+- ✅ Flask web UI with live logs and gallery  
+- ✅ Ollama + OpenAI integration  
+- 🚧 Extended prompt tuning  
+- 🚧 More UI polish  
+
+---
+
+## 📝 License
+
+MIT (for now — subject to change as project evolves)
+
+---
+
+## 🙋 About
+
+BookAI is built by:  
+- **Andrew** – Core developer, architecture, orchestration, and domain logic.  
+- **Aaron** – Core developer, Image generation and prompt development.
